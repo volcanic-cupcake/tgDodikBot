@@ -1,6 +1,6 @@
 package tgAyeBot;
 
-import java.util.Scanner;
+
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.ChatMember;
