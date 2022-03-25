@@ -22,7 +22,7 @@ enum Resource {
 public class Main {
 
 	public static void main(String[] args) throws IOException {
-		//ZonedDateTime uaTime = Bot.uaDateTime();
+		ZonedDateTime uaTime = Bot.uaDateTimeNow();
 		
 		String token = "";
 		Scanner scan = new Scanner(new File(Resource.TOKEN.path));
