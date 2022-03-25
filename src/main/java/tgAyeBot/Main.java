@@ -3,10 +3,12 @@ package tgAyeBot;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.Scanner;
 
 import com.pengrad.telegrambot.*;
 import com.pengrad.telegrambot.model.ChatMemberUpdated;
+import com.pengrad.telegrambot.model.Contact;
 import com.pengrad.telegrambot.model.Update;
 
 enum Resource {
@@ -20,7 +22,8 @@ enum Resource {
 public class Main {
 
 	public static void main(String[] args) throws IOException {
-
+		//ZonedDateTime uaTime = Bot.uaDateTime();
+		
 		String token = "";
 		Scanner scan = new Scanner(new File(Resource.TOKEN.path));
 		while(scan.hasNextLine()) {
@@ -30,10 +33,7 @@ public class Main {
 		
 		Bot bot = new Bot(token);
 		
-		System.out.println();
-		
-		// Register for updates
-		bot.removeGetUpdatesListener();
+		// Listening for updates
 		bot.setUpdatesListener(updates -> {
 		    for (Update update : updates) {
 		    	ChatMemberUpdated member = update.myChatMember();
@@ -41,7 +41,9 @@ public class Main {
 		    		System.out.println("not null");
 		    		System.out.println(member.newChatMember().user().id());
 		    	}
-		    	// wanted to create another bot, add it to that chat and see the difference between myChatMember() and stuff
+		    	
+		    	Contact contact = update.message().contact();
+		    	if (contact != null) System.out.println(contact.userId());
 		    }
 		    return UpdatesListener.CONFIRMED_UPDATES_ALL;
 		});
