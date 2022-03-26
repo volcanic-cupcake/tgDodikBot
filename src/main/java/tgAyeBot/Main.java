@@ -11,18 +11,9 @@ import com.pengrad.telegrambot.model.ChatMemberUpdated;
 import com.pengrad.telegrambot.model.Contact;
 import com.pengrad.telegrambot.model.Update;
 
-enum Resource {
-	TOKEN("src/main/resources/TOKEN.txt");
-	
-	String path;
-	Resource(String path) {
-		this.path = path;
-	}
-}
 public class Main {
 
 	public static void main(String[] args) throws IOException {
-		ZonedDateTime uaTime = Bot.uaDateTimeNow();
 		
 		String token = "";
 		Scanner scan = new Scanner(new File(Resource.TOKEN.path));

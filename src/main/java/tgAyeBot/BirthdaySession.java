@@ -4,7 +4,7 @@ import java.time.ZonedDateTime;
 
 public class BirthdaySession extends Session {
 	private long contactId = 0;
-	private String date = "";
+	private ZonedDateTime birthdayDate = null;
 	private String text = "";
 	
 	BirthdaySession(long authorId, ZonedDateTime created) {
@@ -14,8 +14,8 @@ public class BirthdaySession extends Session {
 	public long contactId() {
 		return this.contactId;
 	}
-	public String date() {
-		return this.date;
+	public ZonedDateTime birthdayDate() {
+		return this.birthdayDate;
 	}
 	public String text() {
 		return this.text;
@@ -24,8 +24,8 @@ public class BirthdaySession extends Session {
 	public void setContactId(long contactId) {
 		this.contactId = contactId;
 	}
-	public void setDate(String date) {
-		this.date = date;
+	public void setBirthdayDate(ZonedDateTime birthdayDate) {
+		this.birthdayDate = birthdayDate;
 	}
 	public void setTest(String text) {
 		this.text = text;

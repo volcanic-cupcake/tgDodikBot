@@ -30,7 +30,7 @@ public class Bot extends TelegramBot {
 		ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, zoneId);
 		return zdt;
 	}
-	public static ZonedDateTime uaDateTime(String dateString) {
+	public static ZonedDateTime uaDateTime(String dateString) { //accepts dd:MM format
 		dateString = dateString.strip();
 		int dayInput = 0;
 		int monthInput = 0;
@@ -41,14 +41,20 @@ public class Bot extends TelegramBot {
 		catch (NumberFormatException | StringIndexOutOfBoundsException e) {
 			return null;
 		}
-		ZonedDateTime now = uaDateTimeNow();
+		
 		ZoneId zoneId = ZoneId.of("Europe/Kiev");
+		ZonedDateTime now = uaDateTimeNow();
 		
 		int monthNow = now.getMonthValue();
 		int dayNow = now.getDayOfMonth();
 		boolean isThisYear = monthInput > monthNow || (monthInput == monthNow && dayInput > dayNow);
-		System.out.println(ZonedDateTime.of(2015, 2, 30, 4, 23, 3, 34, zoneId).toString());
-		SimpleDateFormat dayFormat = new SimpleDateFormat("dd.MM");
+		
+		int year;
+		if (isThisYear) year = now.getYear();
+		else year = now.getYear() + 1;
+		
+		ZonedDateTime zdt = ZonedDateTime.of(year, monthInput, dayInput, 0, 0, 0, 0, zoneId);
+		return zdt;
 	}
 	
 	
