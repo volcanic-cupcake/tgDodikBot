@@ -3,14 +3,21 @@ package tgAyeBot;
 import java.time.ZonedDateTime;
 
 public class BirthdaySession extends Session implements BirthdayInterface{
+	private String authorName;
+	
 	private long contactId = 0;
 	private ZonedDateTime birthdayDate = null;
 	private String text = "";
 	
-	BirthdaySession(long authorId, ZonedDateTime created) {
+	BirthdaySession(long authorId, ZonedDateTime created, String authorName) {
 		super(authorId, created);
+		setAuthorName(authorName);
 	}
 	
+	@Override
+	public String authorName() {
+		return this.authorName;
+	}
 	@Override
 	public long contactId() {
 		return this.contactId;
@@ -25,6 +32,10 @@ public class BirthdaySession extends Session implements BirthdayInterface{
 	}
 	
 	@Override
+	public void setAuthorName(String authorName) {
+		this.authorName = authorName;
+	}
+	@Override
 	public void setContactId(long contactId) {
 		this.contactId = contactId;
 	}
@@ -35,5 +46,15 @@ public class BirthdaySession extends Session implements BirthdayInterface{
 	@Override
 	public void setText(String text) {
 		this.text = text;
+	}
+	
+	public Birthday toBirthday() {
+		String authorName = authorName();
+		long contactId = contactId();
+		ZonedDateTime birthdayDate = birthdayDate();
+		String text = text();
+		
+		Birthday birthday = new Birthday(authorName, contactId, birthdayDate, text);
+		return birthday;
 	}
 }
