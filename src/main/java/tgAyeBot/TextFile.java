@@ -93,7 +93,40 @@ public abstract class TextFile {
 		writer.write(text);
 		writer.close();
 	}
-	
+	public static String read(File file) throws FileNotFoundException {
+		String text = "";
+		Scanner scan = new Scanner(file);
+		String nextLine;
+		while (scan.hasNextLine()) {
+			nextLine = scan.nextLine();
+			text += nextLine + "\n";
+		}
+		scan.close();
+		try {
+			//removing last character
+			text = text.substring(0, text.length() - 1);
+		}
+		catch (StringIndexOutOfBoundsException e) {}
+		return text;
+	}
+	public static String read(String filePath) throws FileNotFoundException {
+		File file = new File(filePath);
+		
+		String text = "";
+		Scanner scan = new Scanner(file);
+		String nextLine;
+		while (scan.hasNextLine()) {
+			nextLine = scan.nextLine();
+			text += nextLine + "\n";
+		}
+		scan.close();
+		try {
+			//removing last character
+			text = text.substring(0, text.length() - 1);
+		}
+		catch (StringIndexOutOfBoundsException e) {}
+		return text;
+	}
 	public static List<String> readLines(File file) throws FileNotFoundException {
 		List<String> lines = new ArrayList<String>();
 		Scanner scan = new Scanner(file);
