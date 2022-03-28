@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -64,6 +65,28 @@ public class Bot extends TelegramBot {
 		List<Birthday> birthdays = Birthday.readBirthdays();
 		birthdays.add(birthday);
 		Birthday.writeBirthdays(birthdays);
+	}
+	public static void addBirthday(List<Birthday> newBirthdays) throws IOException {
+		List<Birthday> birthdays = Birthday.readBirthdays();
+		for (Birthday newBirthday : newBirthdays) {
+			birthdays.add(newBirthday);
+		}
+		Birthday.writeBirthdays(birthdays);
+	}
+	
+	public static List<Birthday> expiredBirthdays() throws FileNotFoundException {
+		List<Birthday> expiredBirthdays = new ArrayList<Birthday>();
+		List<Birthday> birthdays = Birthday.readBirthdays();
+		Instant instant = Instant.now();
+		long nowEpoch = instant.getEpochSecond();
+		long birthdayEpoch;
+		for (Birthday birthday : birthdays) {
+			birthdayEpoch = birthday.birthdayDate().toEpochSecond();
+			if (nowEpoch >= birthdayEpoch) expiredBirthdays.add(birthday);
+		}
+		
+		if (expiredBirthdays.isEmpty()) return null;
+		else return expiredBirthdays;
 	}
 	
 	public ChatMember botGetChatMember(long chatId, long userId) {
