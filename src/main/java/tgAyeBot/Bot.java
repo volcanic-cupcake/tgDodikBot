@@ -2,12 +2,15 @@ package tgAyeBot;
 
 
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.ChatMember;
@@ -57,6 +60,11 @@ public class Bot extends TelegramBot {
 		return zdt;
 	}
 	
+	public static void addBirthday(Birthday birthday) throws IOException {
+		List<Birthday> birthdays = Birthday.readBirthdays();
+		birthdays.add(birthday);
+		Birthday.writeBirthdays(birthdays);
+	}
 	
 	public ChatMember botGetChatMember(long chatId, long userId) {
 		GetChatMember request = new GetChatMember(chatId, userId);

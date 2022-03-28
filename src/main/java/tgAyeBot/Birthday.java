@@ -1,6 +1,7 @@
 package tgAyeBot;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -99,5 +100,31 @@ public class Birthday implements BirthdayInterface {
 			}
 		}
 		return birthdays;
+	}
+	
+	public static void writeBirthdays(List<Birthday> birthdays) throws IOException {
+		List<String> lines = new ArrayList<String>();
+		String authorNameLine;
+		String contactIdLine;
+		String birthdayDateLine;
+		String textLine;
+		for (Birthday birthday : birthdays) {
+			authorNameLine = birthday.authorName();
+			
+			contactIdLine = Long.toString( birthday.contactId() );
+			
+			long birthdayDateUnix = birthday.birthdayDate().toEpochSecond();
+			birthdayDateLine = Long.toString(birthdayDateUnix);
+			
+			textLine = birthday.text();
+			
+			lines.add(authorNameLine);
+			lines.add(contactIdLine);
+			lines.add(birthdayDateLine);
+			lines.add(textLine);
+			
+			String filePath = Resource.birthdays.path;
+			TextFile.writeLines(filePath, lines, false);
+		}
 	}
 }
