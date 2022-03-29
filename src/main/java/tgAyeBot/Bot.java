@@ -6,14 +6,21 @@ package tgAyeBot;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.ChatMember;
+import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.GetChatMember;
 import com.pengrad.telegrambot.request.GetMe;
+import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.GetChatMemberResponse;
 import com.pengrad.telegrambot.response.GetMeResponse;
+
+import tgAyeBot.Command.Type;
 
 
 public class Bot extends TelegramBot {
@@ -57,7 +64,35 @@ public class Bot extends TelegramBot {
 		return zdt;
 	}
 	
-	
+	public List<Command> commands() {
+		Bot bot = this;
+		List<Command> commands = new ArrayList<Command>();
+		Command help = new Command(Type.PRIVATE_AND_GROUP, "/help") {
+			
+			@Override
+			public void execute(Message message) {
+				long chatId = message.chat().id();
+				String text =
+						"[ УСІ ЧАТИ ]\n"
+						+ "/help - ти це щойно прописав блядь\n"
+						+ "/youtube - плейлист з поясненням на Ютубі\n"
+						+ "/russian_warship :D\n\n"
+						
+						+ "[ ЛС ЗІ МНОЮ ]\n"
+						+ "/setbirthday - зберегти привітання на День Народження\n"
+						+ "/delbirthday - видалити привітання на ДН\n"
+						+ "/mybirthdays - список привітань на ДН\n\n"
+						
+						+ "[ ГРУПОВІ ЧАТИ ]\n"
+						+ "/pidoras - pidoras";
+				SendMessage send = new SendMessage(chatId, text);
+				bot.execute(send);
+			}
+			
+		};
+		commands.add(help);
+		return commands;
+	}
 	
 	public ChatMember botGetChatMember(long chatId, long userId) {
 		GetChatMember request = new GetChatMember(chatId, userId);

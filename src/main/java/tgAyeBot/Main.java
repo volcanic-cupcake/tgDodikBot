@@ -2,6 +2,7 @@ package tgAyeBot;
 
 
 import java.io.IOException;
+import java.util.List;
 
 import com.pengrad.telegrambot.*;
 import com.pengrad.telegrambot.model.ChatMemberUpdated;
@@ -21,9 +22,8 @@ public class Main {
 		    for (Update update : updates) {
 		    	Message message = update.message();
 		    	if (message != null) {
-		    		System.out.println(message.text());
-			    	SendMessage send = new SendMessage(message.chat().id(), "/test");
-			    	bot.execute(send);
+		    		List<Command> commands = bot.commands();
+		    		commands.get(0).execute(message);
 		    	}
 		    	/*ChatMemberUpdated member = update.myChatMember();
 		    	if (member != null) {

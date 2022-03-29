@@ -1,5 +1,8 @@
 package tgAyeBot;
 
+import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.Update;
+
 public class Command {
 	enum Type {
 		PRIVATE, GROUP, PRIVATE_AND_GROUP;
@@ -26,7 +29,7 @@ public class Command {
 		this.command = command;
 	}
 	
-	public void execute() {
+	public void execute(Message message) {
 		
 	}
 }
