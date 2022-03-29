@@ -127,4 +127,57 @@ public class Birthday implements BirthdayInterface {
 			TextFile.writeLines(filePath, lines, false);
 		}
 	}
+	
+	public static void addBirthday(Birthday birthday) throws IOException {
+		List<Birthday> birthdays = readBirthdays();
+		birthdays.add(birthday);
+		Birthday.writeBirthdays(birthdays);
+	}
+	public static void addBirthday(List<Birthday> newBirthdays) throws IOException {
+		List<Birthday> birthdays = Birthday.readBirthdays();
+		for (Birthday newBirthday : newBirthdays) {
+			birthdays.add(newBirthday);
+		}
+		Birthday.writeBirthdays(birthdays);
+	}
+	
+	public static List<Birthday> todayBirthdays() throws FileNotFoundException {
+		List<Birthday> birthdays = readBirthdays();
+		List<Birthday> todayBirthdays = new ArrayList<Birthday>();
+		ZonedDateTime now = Bot.uaDateTimeNow();
+		ZonedDateTime birthdayDate;
+		for (Birthday birthday : birthdays) {
+			birthdayDate = birthday.birthdayDate();
+			boolean isToday =
+					now.getYear() == birthdayDate.getYear() &&
+					now.getDayOfYear() == birthdayDate.getDayOfYear();
+			if (isToday) todayBirthdays.add(birthday);
+		}
+		
+		if (todayBirthdays.isEmpty()) return null;
+		else return todayBirthdays;
+	}
+	public static List<Birthday> expiredBirthdays() throws FileNotFoundException {
+		List<Birthday> birthdays = readBirthdays();
+		List<Birthday> expiredBirthdays = new ArrayList<Birthday>();
+		ZonedDateTime now = Bot.uaDateTimeNow();
+		long nowEpoch = now.toEpochSecond();
+		long birthdayEpoch;
+		ZonedDateTime birthdayDate;
+		for (Birthday birthday : birthdays) {
+			birthdayDate = birthday.birthdayDate();
+			birthdayEpoch = birthdayDate.toEpochSecond();
+			boolean hasPassed = nowEpoch >= birthdayEpoch;
+			boolean isThisYear =
+					now.getYear() == birthdayDate.getYear() &&
+					now.getDayOfYear() != birthdayDate.getDayOfYear();
+			boolean isLaterYear = now.getYear() > birthdayDate.getYear();
+			
+			boolean expired = hasPassed && (isThisYear || isLaterYear);
+			if (expired) expiredBirthdays.add(birthday);
+		}
+		
+		if (expiredBirthdays.isEmpty()) return null;
+		else return expiredBirthdays;
+	}
 }

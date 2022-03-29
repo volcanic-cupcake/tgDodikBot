@@ -2,16 +2,10 @@ package tgAyeBot;
 
 
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.ChatMember;
@@ -23,6 +17,8 @@ import com.pengrad.telegrambot.response.GetMeResponse;
 
 
 public class Bot extends TelegramBot {
+	
+	private final String USERNAME = "@" + botGetMe().username();
 	
 	public Bot(String token) {
 		super(token);
@@ -61,33 +57,7 @@ public class Bot extends TelegramBot {
 		return zdt;
 	}
 	
-	public static void addBirthday(Birthday birthday) throws IOException {
-		List<Birthday> birthdays = Birthday.readBirthdays();
-		birthdays.add(birthday);
-		Birthday.writeBirthdays(birthdays);
-	}
-	public static void addBirthday(List<Birthday> newBirthdays) throws IOException {
-		List<Birthday> birthdays = Birthday.readBirthdays();
-		for (Birthday newBirthday : newBirthdays) {
-			birthdays.add(newBirthday);
-		}
-		Birthday.writeBirthdays(birthdays);
-	}
 	
-	public static List<Birthday> expiredBirthdays() throws FileNotFoundException {
-		List<Birthday> expiredBirthdays = new ArrayList<Birthday>();
-		List<Birthday> birthdays = Birthday.readBirthdays();
-		Instant instant = Instant.now();
-		long nowEpoch = instant.getEpochSecond();
-		long birthdayEpoch;
-		for (Birthday birthday : birthdays) {
-			birthdayEpoch = birthday.birthdayDate().toEpochSecond();
-			if (nowEpoch >= birthdayEpoch) expiredBirthdays.add(birthday);
-		}
-		
-		if (expiredBirthdays.isEmpty()) return null;
-		else return expiredBirthdays;
-	}
 	
 	public ChatMember botGetChatMember(long chatId, long userId) {
 		GetChatMember request = new GetChatMember(chatId, userId);
@@ -101,5 +71,8 @@ public class Bot extends TelegramBot {
 		GetMeResponse getMeResponse = this.execute(request);
 		User me = getMeResponse.user();
 		return me;
+	}
+	public String username() {
+		return this.USERNAME;
 	}
 }
