@@ -1,6 +1,8 @@
 package tgAyeBot;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BirthdaySession extends Session implements BirthdayInterface{
 	private String authorName;
@@ -13,6 +15,7 @@ public class BirthdaySession extends Session implements BirthdayInterface{
 		super(authorId, created);
 		setAuthorName(authorName);
 	}
+	
 	
 	@Override
 	public String authorName() {

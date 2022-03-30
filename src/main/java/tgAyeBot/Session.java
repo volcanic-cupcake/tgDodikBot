@@ -1,14 +1,21 @@
 package tgAyeBot;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class Session {
+	private static List<Session> sessions = new ArrayList<Session>();
+	
 	private long authorId;
 	private ZonedDateTime created;
 	
 	Session(long authorId, ZonedDateTime created) {
 		setAuthorId(authorId);
 		setCreated(created);
+	}
+	public static List<Session> sessions() {
+		return sessions;
 	}
 	
 	public long authorId() {

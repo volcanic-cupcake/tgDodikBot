@@ -64,33 +64,83 @@ public class Bot extends TelegramBot {
 		return zdt;
 	}
 	
-	public List<Command> commands() {
+	public SendMessage helpMessage(long chatId) {
+		String text =
+				"[ УСІ ЧАТИ ]\n"
+				+ "/help - ти це щойно прописав блядь\n"
+				+ "/youtube - плейлист з поясненням на Ютубі\n"
+				+ "/russian_warship :D\n\n"
+				
+				+ "[ ЛС ЗІ МНОЮ ]\n"
+				+ "/setbirthday - зберегти привітання на День Народження\n"
+				+ "/delbirthday - видалити привітання на ДН\n"
+				+ "/mybirthdays - список привітань на ДН\n\n"
+				
+				+ "[ ГРУПОВІ ЧАТИ ]\n"
+				+ "/pidoras - pidoras";
+		SendMessage send = new SendMessage(chatId, text);
+		return send;
+	}
+	public Command[] commands() {
 		Bot bot = this;
-		List<Command> commands = new ArrayList<Command>();
+		//List<Command> commands = new ArrayList<Command>();
+		
 		Command help = new Command(Type.PRIVATE_AND_GROUP, "/help") {
-			
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
-				String text =
-						"[ УСІ ЧАТИ ]\n"
-						+ "/help - ти це щойно прописав блядь\n"
-						+ "/youtube - плейлист з поясненням на Ютубі\n"
-						+ "/russian_warship :D\n\n"
-						
-						+ "[ ЛС ЗІ МНОЮ ]\n"
-						+ "/setbirthday - зберегти привітання на День Народження\n"
-						+ "/delbirthday - видалити привітання на ДН\n"
-						+ "/mybirthdays - список привітань на ДН\n\n"
-						
-						+ "[ ГРУПОВІ ЧАТИ ]\n"
-						+ "/pidoras - pidoras";
-				SendMessage send = new SendMessage(chatId, text);
+				SendMessage send = helpMessage(chatId);
 				bot.execute(send);
 			}
-			
 		};
-		commands.add(help);
+		
+		Command youtube = new Command(Type.PRIVATE_AND_GROUP, "/youtube") {
+			@Override
+			public void execute(Message message) {
+				long chatId = message.chat().id();
+				String link = "its not a link but it will be";
+				SendMessage send = new SendMessage(chatId, link);
+				bot.execute(send);
+			}
+		};
+		
+		Command russian_warship = new Command(Type.PRIVATE_AND_GROUP, "/russian_warship") {
+			@Override
+			public void execute(Message message) {
+				long chatId = message.chat().id();
+				int messageId = message.messageId();
+				String text = "иди нахуй!";
+				SendMessage send = new SendMessage(chatId, text)
+						.replyToMessageId(messageId);
+				bot.execute(send);
+			}
+		};
+		
+		Command set_birthday = new Command(Type.PRIVATE, "/setbirthday") {
+			@Override
+			public void execute(Message message) {
+				//List<Session> bdaySessions = BirthdaySession.sessions();
+			}
+		};
+		
+		Command del_birthday = new Command(Type.PRIVATE, "/delbirthday") {
+			@Override
+			public void execute(Message message) {
+				
+			}
+		};
+		
+		Command my_birthdays = new Command(Type.PRIVATE, "/mybirthdays") {
+			@Override
+			public void execute(Message message) {
+				
+			}
+		};
+		
+		Command[] commands = {
+				help, youtube, russian_warship, set_birthday,
+				del_birthday, my_birthdays
+		};
 		return commands;
 	}
 	

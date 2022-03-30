@@ -22,8 +22,8 @@ public class Main {
 		    for (Update update : updates) {
 		    	Message message = update.message();
 		    	if (message != null) {
-		    		List<Command> commands = bot.commands();
-		    		commands.get(0).execute(message);
+		    		Command[] commands = bot.commands();
+		    		commands[0].execute(message);
 		    	}
 		    	/*ChatMemberUpdated member = update.myChatMember();
 		    	if (member != null) {

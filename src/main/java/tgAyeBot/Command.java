@@ -28,7 +28,7 @@ public class Command {
 	public void setCommand(String command) {
 		this.command = command;
 	}
-	
+
 	public void execute(Message message) {
 		
 	}
