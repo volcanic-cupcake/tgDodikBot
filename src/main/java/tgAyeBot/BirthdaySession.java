@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BirthdaySession extends Session implements BirthdayInterface{
-	private String authorName;
 	
+	private String authorName;
 	private long contactId = 0;
 	private ZonedDateTime birthdayDate = null;
 	private String text = "";
 	
-	BirthdaySession(long authorId, ZonedDateTime created, String authorName) {
+	BirthdaySession(ZonedDateTime created, long authorId, String authorName) {
 		super(authorId, created);
 		setAuthorName(authorName);
 	}

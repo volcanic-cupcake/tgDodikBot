@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Session {
-	private static List<Session> sessions = new ArrayList<Session>();
 	
 	private long authorId;
 	private ZonedDateTime created;
@@ -13,9 +12,6 @@ public abstract class Session {
 	Session(long authorId, ZonedDateTime created) {
 		setAuthorId(authorId);
 		setCreated(created);
-	}
-	public static List<Session> sessions() {
-		return sessions;
 	}
 	
 	public long authorId() {

@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.pengrad.telegrambot.TelegramBot;
@@ -72,7 +73,8 @@ public class Bot extends TelegramBot {
 				+ "/russian_warship :D\n\n"
 				
 				+ "[ ЛС ЗІ МНОЮ ]\n"
-				+ "/setbirthday - зберегти привітання на День Народження\n"
+				+ "/cancel - відмінити лайно\n"
+				+ "/setbirthday - зберегти привітання на ДН\n"
 				+ "/delbirthday - видалити привітання на ДН\n"
 				+ "/mybirthdays - список привітань на ДН\n\n"
 				
@@ -116,10 +118,37 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
+		Command cancel = new Command(Type.PRIVATE, "/cancel") {
+			@Override
+			public void execute(Message message) {
+				int messageId = message.messageId();
+				long chatId = message.chat().id();
+				long fromId = message.from().id();
+				
+				SessionStore.clear(fromId);
+				SendMessage send = new SendMessage(chatId, "гаразд")
+						.replyToMessageId(messageId);
+				bot.execute(send);
+			}
+		};
+		
 		Command set_birthday = new Command(Type.PRIVATE, "/setbirthday") {
 			@Override
 			public void execute(Message message) {
-				//List<Session> bdaySessions = BirthdaySession.sessions();
+				User from = message.from();
+				long fromId = from.id();
+				String fullName = "";
+				String firstName = from.firstName();
+				String lastName = from.lastName();
+				if (firstName != null) fullName += firstName;
+				if (lastName != null) fullName += " " + lastName;
+				ZonedDateTime now = uaDateTimeNow();
+				
+				SessionStore.clear(fromId);
+				List<BirthdaySession> bdaySessions = SessionStore.birthday();
+				
+				BirthdaySession newSession = new BirthdaySession(now, fromId, fullName);
+				bdaySessions.add(newSession);
 			}
 		};
 		
@@ -138,8 +167,8 @@ public class Bot extends TelegramBot {
 		};
 		
 		Command[] commands = {
-				help, youtube, russian_warship, set_birthday,
-				del_birthday, my_birthdays
+				help, youtube, russian_warship, cancel,
+				set_birthday, del_birthday, my_birthdays
 		};
 		return commands;
 	}

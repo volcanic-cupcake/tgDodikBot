@@ -28,7 +28,8 @@ public class Command {
 	public void setCommand(String command) {
 		this.command = command;
 	}
-
+	
+	//this is supposed to be overridden
 	public void execute(Message message) {
 		
 	}
