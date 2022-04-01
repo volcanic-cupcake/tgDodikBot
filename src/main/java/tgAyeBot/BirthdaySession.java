@@ -52,12 +52,13 @@ public class BirthdaySession extends Session implements BirthdayInterface{
 	}
 	
 	public Birthday toBirthday() {
+		long authorId = authorId();
 		String authorName = authorName();
 		long contactId = contactId();
 		ZonedDateTime birthdayDate = birthdayDate();
 		String text = text();
 		
-		Birthday birthday = new Birthday(authorName, contactId, birthdayDate, text);
+		Birthday birthday = new Birthday(authorId, authorName, contactId, birthdayDate, text);
 		return birthday;
 	}
 }

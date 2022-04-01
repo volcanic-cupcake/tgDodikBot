@@ -3,6 +3,7 @@ package tgAyeBot;
 
 
 
+import java.io.FileNotFoundException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -132,6 +133,18 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
+		Command my_birthdays = new Command(Type.PRIVATE, "/mybirthdays") {
+			@Override
+			public void execute(Message message) throws FileNotFoundException {
+				long fromId = message.from().id();
+				List<Birthday> allBirthdays = Birthday.readBirthdays();
+				List<Birthday> myBirthdays = new ArrayList<Birthday>();
+				for (Birthday birthday : allBirthdays) {
+					//finished here
+				}
+			}
+		};
+		
 		Command set_birthday = new Command(Type.PRIVATE, "/setbirthday") {
 			@Override
 			public void execute(Message message) {
@@ -153,13 +166,6 @@ public class Bot extends TelegramBot {
 		};
 		
 		Command del_birthday = new Command(Type.PRIVATE, "/delbirthday") {
-			@Override
-			public void execute(Message message) {
-				
-			}
-		};
-		
-		Command my_birthdays = new Command(Type.PRIVATE, "/mybirthdays") {
 			@Override
 			public void execute(Message message) {
 				

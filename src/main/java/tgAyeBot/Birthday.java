@@ -9,18 +9,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Birthday implements BirthdayInterface {
+	private long authorId;
 	private String authorName;
 	private long contactId;
 	private ZonedDateTime birthdayDate;
 	private String text;
 	
-	Birthday(String authorName, long contactId, ZonedDateTime birthdayDate, String text) {
+	Birthday(long authorId, String authorName, long contactId, ZonedDateTime birthdayDate, String text) {
+		setAuthorId(authorId);
 		setAuthorName(authorName);
 		setContactId(contactId);
 		setBirthdayDate(birthdayDate);
 		setText(text);
 	}
 	
+	@Override
+	public long authorId() {
+		return this.authorId;
+	}
 	@Override
 	public String authorName() {
 		return this.authorName;
@@ -38,6 +44,10 @@ public class Birthday implements BirthdayInterface {
 		return this.text;
 	}
 	
+	@Override
+	public void setAuthorId(long authorId) {
+		this.authorId = authorId;
+	}
 	@Override
 	public void setAuthorName(String authorName) {
 		this.authorName = authorName;
@@ -60,11 +70,13 @@ public class Birthday implements BirthdayInterface {
 		ZoneId zoneId = ZoneId.of("Europe/Kiev");
 		List<Birthday> birthdays = new ArrayList<Birthday>();
 		List<String> lines = TextFile.readLines(Resource.birthdays.path);
+		String authorIdLine;
 		String authorNameLine;
 		String contactIdLine;
 		String birthdayDateLine;
 		String textLine;
 		
+		long authorId = 0;
 		String authorName = null;
 		long contactId = 0;
 		ZonedDateTime birthdayDate = null;
@@ -73,26 +85,31 @@ public class Birthday implements BirthdayInterface {
 		for (String line : lines) {
 			switch (counter) {
 			case 0:
+				authorIdLine = line;
+				authorId = Long.parseLong(authorIdLine);
+				counter++;
+				break;
+			case 1:
 				authorNameLine = line;
 				authorName = authorNameLine;
 				counter++;
 				break;
-			case 1:
+			case 2:
 				contactIdLine = line;
 				contactId = Long.parseLong(contactIdLine);
 				counter++;
 				break;
-			case 2:
+			case 3:
 				birthdayDateLine = line;
 				long birthdayDateUnix = Long.parseLong(birthdayDateLine);
 				Instant instant = Instant.ofEpochSecond(birthdayDateUnix);
 				birthdayDate = ZonedDateTime.ofInstant(instant, zoneId);
 				counter++;
 				break;
-			case 3:
+			case 4:
 				textLine = line;
 				text = textLine;
-				Birthday birthday = new Birthday(authorName, contactId, birthdayDate, text);
+				Birthday birthday = new Birthday(authorId, authorName, contactId, birthdayDate, text);
 				
 				birthdays.add(birthday);
 				counter = 0;
@@ -104,11 +121,14 @@ public class Birthday implements BirthdayInterface {
 	
 	public static void writeBirthdays(List<Birthday> birthdays) throws IOException {
 		List<String> lines = new ArrayList<String>();
+		String authorIdLine;
 		String authorNameLine;
 		String contactIdLine;
 		String birthdayDateLine;
 		String textLine;
 		for (Birthday birthday : birthdays) {
+			authorIdLine = Long.toString( birthday.authorId() );
+			
 			authorNameLine = birthday.authorName();
 			
 			contactIdLine = Long.toString( birthday.contactId() );
@@ -118,6 +138,7 @@ public class Birthday implements BirthdayInterface {
 			
 			textLine = birthday.text();
 			
+			lines.add(authorIdLine);
 			lines.add(authorNameLine);
 			lines.add(contactIdLine);
 			lines.add(birthdayDateLine);

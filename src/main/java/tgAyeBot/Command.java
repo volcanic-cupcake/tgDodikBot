@@ -1,5 +1,7 @@
 package tgAyeBot;
 
+import java.io.FileNotFoundException;
+
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 
@@ -30,7 +32,7 @@ public class Command {
 	}
 	
 	//this is supposed to be overridden
-	public void execute(Message message) {
+	public void execute(Message message) throws FileNotFoundException {
 		
 	}
 }
