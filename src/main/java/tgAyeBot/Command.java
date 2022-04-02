@@ -32,7 +32,7 @@ public class Command {
 	}
 	
 	//this is supposed to be overridden
-	public void execute(Message message) throws FileNotFoundException {
+	public void execute(Message message) {
 		
 	}
 }

@@ -12,13 +12,15 @@ public class Birthday implements BirthdayInterface {
 	private long authorId;
 	private String authorName;
 	private long contactId;
+	private String contactName;
 	private ZonedDateTime birthdayDate;
 	private String text;
 	
-	Birthday(long authorId, String authorName, long contactId, ZonedDateTime birthdayDate, String text) {
+	Birthday(long authorId, String authorName, long contactId, String contactName, ZonedDateTime birthdayDate, String text) {
 		setAuthorId(authorId);
 		setAuthorName(authorName);
 		setContactId(contactId);
+		setContactName(contactName);
 		setBirthdayDate(birthdayDate);
 		setText(text);
 	}
@@ -34,6 +36,10 @@ public class Birthday implements BirthdayInterface {
 	@Override
 	public long contactId() {
 		return this.contactId;
+	}
+	@Override
+	public String contactName() {
+		return this.contactName;
 	}
 	@Override
 	public ZonedDateTime birthdayDate() {
@@ -57,6 +63,10 @@ public class Birthday implements BirthdayInterface {
 		this.contactId = contactId;
 	}
 	@Override
+	public void setContactName(String contactName) {
+		this.contactName = contactName;
+	}
+	@Override
 	public void setBirthdayDate(ZonedDateTime birthdayDate) {
 		this.birthdayDate = birthdayDate;
 	}
@@ -73,12 +83,14 @@ public class Birthday implements BirthdayInterface {
 		String authorIdLine;
 		String authorNameLine;
 		String contactIdLine;
+		String contactNameLine;
 		String birthdayDateLine;
 		String textLine;
 		
 		long authorId = 0;
 		String authorName = null;
 		long contactId = 0;
+		String contactName = null;
 		ZonedDateTime birthdayDate = null;
 		String text = null;
 		int counter = 0;
@@ -100,16 +112,21 @@ public class Birthday implements BirthdayInterface {
 				counter++;
 				break;
 			case 3:
+				contactNameLine = line;
+				contactName = contactNameLine;
+				counter++;
+				break;
+			case 4:
 				birthdayDateLine = line;
 				long birthdayDateUnix = Long.parseLong(birthdayDateLine);
 				Instant instant = Instant.ofEpochSecond(birthdayDateUnix);
 				birthdayDate = ZonedDateTime.ofInstant(instant, zoneId);
 				counter++;
 				break;
-			case 4:
+			case 5:
 				textLine = line;
 				text = textLine;
-				Birthday birthday = new Birthday(authorId, authorName, contactId, birthdayDate, text);
+				Birthday birthday = new Birthday(authorId, authorName, contactId, contactName, birthdayDate, text);
 				
 				birthdays.add(birthday);
 				counter = 0;
@@ -124,6 +141,7 @@ public class Birthday implements BirthdayInterface {
 		String authorIdLine;
 		String authorNameLine;
 		String contactIdLine;
+		String contactNameLine;
 		String birthdayDateLine;
 		String textLine;
 		for (Birthday birthday : birthdays) {
@@ -133,6 +151,8 @@ public class Birthday implements BirthdayInterface {
 			
 			contactIdLine = Long.toString( birthday.contactId() );
 			
+			contactNameLine = birthday.contactName();
+			
 			long birthdayDateUnix = birthday.birthdayDate().toEpochSecond();
 			birthdayDateLine = Long.toString(birthdayDateUnix);
 			
@@ -141,6 +161,7 @@ public class Birthday implements BirthdayInterface {
 			lines.add(authorIdLine);
 			lines.add(authorNameLine);
 			lines.add(contactIdLine);
+			lines.add(contactNameLine);
 			lines.add(birthdayDateLine);
 			lines.add(textLine);
 			

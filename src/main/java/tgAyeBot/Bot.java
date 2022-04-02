@@ -4,6 +4,7 @@ package tgAyeBot;
 
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -75,6 +76,7 @@ public class Bot extends TelegramBot {
 				
 				+ "[ ЛС ЗІ МНОЮ ]\n"
 				+ "/cancel - відмінити лайно\n"
+				+ "/anonymous - анонімний режим\n"
 				+ "/setbirthday - зберегти привітання на ДН\n"
 				+ "/delbirthday - видалити привітання на ДН\n"
 				+ "/mybirthdays - список привітань на ДН\n\n"
@@ -133,15 +135,65 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
+		Command anonymous = new Command(Type.PRIVATE, "/anonymous") {
+			@Override
+			public void execute(Message message) {
+				long fromId = message.from().id();
+				long chatId = message.chat().id();
+				List<Long> anonymous = null;
+				try {
+					anonymous = readAnonymous();
+				} catch (FileNotFoundException e) {}
+				
+				boolean isEnabled = anonymous.contains(fromId);
+				String output;
+				if (isEnabled) {
+					anonymous.remove(fromId);
+					try {
+						writeAnonymous(anonymous);
+					} catch (IOException e) {}
+					
+					output = "Ви більше не анонімус :o"; 
+				}
+				else {
+					anonymous.add(fromId);
+					try {
+						writeAnonymous(anonymous);
+					} catch (IOException e) {}
+					
+					output = "Ви тепер анонімус :D";
+				}
+				
+				SendMessage send = new SendMessage(chatId, output);
+				bot.execute(send);
+			}
+		};
+		
 		Command my_birthdays = new Command(Type.PRIVATE, "/mybirthdays") {
 			@Override
-			public void execute(Message message) throws FileNotFoundException {
+			public void execute(Message message) {
 				long fromId = message.from().id();
-				List<Birthday> allBirthdays = Birthday.readBirthdays();
+				long chatId = message.chat().id();
+				
+				List<Birthday> allBirthdays = null;
+				try {
+					allBirthdays = Birthday.readBirthdays();
+				}
+				catch (FileNotFoundException e) {}
+				
 				List<Birthday> myBirthdays = new ArrayList<Birthday>();
 				for (Birthday birthday : allBirthdays) {
-					//finished here
+					if (birthday.authorId() == fromId) myBirthdays.add(birthday);
 				}
+				
+				String output;
+				if (myBirthdays.isEmpty()) {
+					output = "Пусто, прямо як у москаляки в голові!";
+				}
+				else {
+					output = birthdaysToText(myBirthdays);
+				}
+				secureTextSend(chatId, output);
 			}
 		};
 		
@@ -158,7 +210,7 @@ public class Bot extends TelegramBot {
 				ZonedDateTime now = uaDateTimeNow();
 				
 				SessionStore.clear(fromId);
-				List<BirthdaySession> bdaySessions = SessionStore.birthday();
+				List<BirthdaySession> bdaySessions = SessionStore.setBirthday();
 				
 				BirthdaySession newSession = new BirthdaySession(now, fromId, fullName);
 				bdaySessions.add(newSession);
@@ -173,10 +225,55 @@ public class Bot extends TelegramBot {
 		};
 		
 		Command[] commands = {
-				help, youtube, russian_warship, cancel,
+				help, youtube, russian_warship, cancel, anonymous,
 				set_birthday, del_birthday, my_birthdays
 		};
 		return commands;
+	}
+	
+	public static List<Long> readAnonymous() throws FileNotFoundException {
+		List<String> lines = TextFile.readLines(Resource.anonymousMode.path);
+		List<Long> ids = new ArrayList<Long>();
+		for (String line : lines) {
+			ids.add( Long.parseLong(line) );
+		}
+		return ids;
+	}
+	public static void writeAnonymous(List<Long> ids) throws IOException {
+		List<String> lines = new ArrayList<String>();
+		String line;
+		for (long id : ids) {
+			line = Long.toString(id);
+			lines.add(line);
+		}
+		TextFile.writeLines(Resource.anonymousMode.path, lines, false);
+	}
+
+	public void secureTextSend(long chatId, String text) {
+		final int MAX_LENGTH = 4096;
+		
+		if (text.length() <= MAX_LENGTH) {
+			SendMessage send = new SendMessage(chatId, text);
+			this.execute(send);
+		}
+		else { //sending multiple messages
+			int num = text.length() / MAX_LENGTH;
+			int leftNum = text.length() % MAX_LENGTH;
+			
+			String temp;
+			for (int i = 0; i < num; i++) {
+				temp = text.substring(0, MAX_LENGTH);
+				text = text.substring(MAX_LENGTH, text.length());
+				
+				SendMessage send = new SendMessage(chatId, temp);
+				this.execute(send);
+			}
+			
+			if (leftNum != 0) {
+				SendMessage send = new SendMessage(chatId, text);
+				this.execute(send);
+			}
+		}
 	}
 	
 	public ChatMember botGetChatMember(long chatId, long userId) {
@@ -194,5 +291,43 @@ public class Bot extends TelegramBot {
 	}
 	public String username() {
 		return this.USERNAME;
+	}
+	
+	private String zdtToString(ZonedDateTime zdt) {
+		
+		String day = Integer.toString( zdt.getDayOfMonth() );
+		String month = Integer.toString( zdt.getMonthValue() );
+		String year = Integer.toString( zdt.getYear() );
+		
+		if (day.length() != 2) day = "0" + day;
+		if (month.length() != 2) month = "0" + month;
+		
+		String date = day + "." + month + "." + year;
+		return date;
+	}
+	private String birthdaysToText (List<Birthday> birthdays) {
+		String separator = "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _";
+		int number = 1;
+		String output = "";
+		String date;
+		for (Birthday birthday : birthdays) {
+			date = zdtToString( birthday.birthdayDate() );
+			
+			output	+= separator + "\n\n"
+					
+					+ "#" + number + " [ " + birthday.contactName() + " ]\n\n"
+					+ "Ваше ім'я:\n"
+					+ birthday.authorName() + "\n\n"
+					+ "Дата:\n"
+					+ date + "\n\n"
+					+ "Текст:\n"
+					+ birthday.text() + "\n";
+			
+			number++;
+		}
+		output += separator;
+		
+		if (output.contentEquals("")) return null;
+		else return output;
 	}
 }

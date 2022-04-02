@@ -1,6 +1,7 @@
 package tgAyeBot;
 
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class Main {
 		    	Message message = update.message();
 		    	if (message != null) {
 		    		Command[] commands = bot.commands();
-		    		commands[0].execute(message);
+		    		commands[4].execute(message);
 		    	}
 		    	/*ChatMemberUpdated member = update.myChatMember();
 		    	if (member != null) {
