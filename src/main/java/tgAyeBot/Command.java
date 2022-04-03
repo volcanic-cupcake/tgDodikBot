@@ -35,6 +35,7 @@ public class Command {
 		this.command = command;
 	}
 	
+	
 	//this is supposed to be overridden
 	public void execute(Message message) {
 		

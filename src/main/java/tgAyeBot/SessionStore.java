@@ -10,7 +10,7 @@ public abstract class SessionStore {
 	private static List<DelBirthdaySession> delBirthday = new ArrayList<DelBirthdaySession>();
 	// also add new stuff to clear() method!
 
-	public static void clear(long userId) {
+	public static void clear(long userId) {/*
 		//example begins
 		Iterator<SetBirthdaySession> setBirthdayIterator = setBirthday.iterator();
 		while (setBirthdayIterator.hasNext()) {
@@ -26,7 +26,7 @@ public abstract class SessionStore {
 		}
 		
 		//add new stuff here as in the example
-	}
+	*/}
 	
 	public static List<SetBirthdaySession> setBirthday() {
 		return setBirthday;

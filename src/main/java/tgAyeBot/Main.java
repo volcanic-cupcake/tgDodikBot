@@ -21,27 +21,19 @@ public class Main {
 		    for (Update update : updates) {
 		    	Message message = update.message();
 		    	if (message != null) {
-		    		MessageHandler handler = new MessageHandler(message);
 		    		Type type = message.chat().type();
 		    		switch (type) {
 		    		case Private:
-		    			handler.Private();
+		    			MessageHandler.Private(message);
 		    			break;
 		    		case group:
-		    			handler.group();
+		    		case supergroup:
+		    			MessageHandler.group(message);
 		    			break;
 		    		default:
 		    			break;
 		    		}
 		    	}
-		    	/*ChatMemberUpdated member = update.myChatMember();
-		    	if (member != null) {
-		    		System.out.println("not null");
-		    		System.out.println(member.newChatMember().user().id());
-		    	}
-		    	
-		    	Contact contact = update.message().contact();
-		    	if (contact != null) System.out.println(contact.userId());*/
 		    }
 		    return UpdatesListener.CONFIRMED_UPDATES_ALL;
 		});

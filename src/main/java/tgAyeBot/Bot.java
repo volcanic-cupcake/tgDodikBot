@@ -155,7 +155,7 @@ public class Bot extends TelegramBot {
 			public void execute(Message message) {
 				long chatId = message.chat().id();
 				int messageId = message.messageId();
-				String text = "иди нахуй!";
+				String text = "...иди нахуй!";
 				SendMessage send = new SendMessage(chatId, text)
 						.replyToMessageId(messageId);
 				bot.execute(send);
