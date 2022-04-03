@@ -5,7 +5,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BirthdaySession extends Session implements BirthdayInterface{
+public class SetBirthdaySession extends Session implements BirthdayInterface{
 	
 	private String authorName;
 	
@@ -14,7 +14,7 @@ public class BirthdaySession extends Session implements BirthdayInterface{
 	private ZonedDateTime birthdayDate = null;
 	private String text = null;
 	
-	BirthdaySession(ZonedDateTime created, long authorId, String authorName) {
+	SetBirthdaySession(ZonedDateTime created, long authorId, String authorName) {
 		super(authorId, created);
 		setAuthorName(authorName);
 	}

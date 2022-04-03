@@ -23,7 +23,7 @@ import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.GetChatMemberResponse;
 import com.pengrad.telegrambot.response.GetMeResponse;
 
-import tgAyeBot.Command.Type;
+import tgAyeBot.Command.CommandType;
 
 
 public class Bot extends TelegramBot {
@@ -86,11 +86,52 @@ public class Bot extends TelegramBot {
 		SendMessage send = new SendMessage(chatId, text);
 		return send;
 	}
+	public boolean sendMyBirthdays(long fromId, long chatId) throws FileNotFoundException {
+		List<Birthday> allBirthdays = Birthday.readBirthdays();
+		List<Birthday> myBirthdays = new ArrayList<Birthday>();
+		for (Birthday birthday : allBirthdays) {
+			if (birthday.authorId() == fromId) myBirthdays.add(birthday);
+		}
+		
+		boolean isEmpty;
+		String output;
+		if (myBirthdays.isEmpty()) {
+			isEmpty = true;
+			output = "Пусто, прямо як у москаляки в голові!";
+		}
+		else {
+			isEmpty = false;
+			output = birthdaysToText(myBirthdays);
+		}
+		secureTextSend(chatId, output);
+		return isEmpty;
+	}
+	
+	public void delBirthdays(long fromId, long chatId) {
+		ZonedDateTime now = uaDateTimeNow();
+		SessionStore.clear(fromId);
+		List<DelBirthdaySession> sessions = SessionStore.delBirthday();
+		DelBirthdaySession newSession = new DelBirthdaySession(fromId, now);
+		sessions.add(newSession);
+		
+		boolean birthdaysEmpty = true;
+		try {
+			birthdaysEmpty = sendMyBirthdays(fromId, chatId);
+		} catch (FileNotFoundException e) {}
+		
+		if (!birthdaysEmpty) {
+			String text =
+					  "Відправ мені номер привітання, яке ти хочеш видалити.\n"
+					+ "Наприклад: 1";
+			SendMessage send = new SendMessage(chatId, text);
+			this.execute(send);
+		}
+	}
 	public Command[] commands() {
 		Bot bot = this;
 		//List<Command> commands = new ArrayList<Command>();
 		
-		Command help = new Command(Type.PRIVATE_AND_GROUP, "/help") {
+		Command help = new Command(CommandType.PRIVATE_AND_GROUP, "/help") {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
@@ -99,7 +140,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command youtube = new Command(Type.PRIVATE_AND_GROUP, "/youtube") {
+		Command youtube = new Command(CommandType.PRIVATE_AND_GROUP, "/youtube") {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
@@ -109,7 +150,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command russian_warship = new Command(Type.PRIVATE_AND_GROUP, "/russian_warship") {
+		Command russian_warship = new Command(CommandType.PRIVATE_AND_GROUP, "/russian_warship") {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
@@ -121,7 +162,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command cancel = new Command(Type.PRIVATE, "/cancel") {
+		Command cancel = new Command(CommandType.PRIVATE, "/cancel") {
 			@Override
 			public void execute(Message message) {
 				int messageId = message.messageId();
@@ -135,7 +176,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command anonymous = new Command(Type.PRIVATE, "/anonymous") {
+		Command anonymous = new Command(CommandType.PRIVATE, "/anonymous") {
 			@Override
 			public void execute(Message message) {
 				long fromId = message.from().id();
@@ -169,35 +210,20 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command my_birthdays = new Command(Type.PRIVATE, "/mybirthdays") {
+		Command my_birthdays = new Command(CommandType.PRIVATE, "/mybirthdays") {
 			@Override
 			public void execute(Message message) {
 				long fromId = message.from().id();
 				long chatId = message.chat().id();
 				
-				List<Birthday> allBirthdays = null;
 				try {
-					allBirthdays = Birthday.readBirthdays();
-				}
-				catch (FileNotFoundException e) {}
+					sendMyBirthdays(fromId, chatId);
+				} catch (FileNotFoundException e) {}
 				
-				List<Birthday> myBirthdays = new ArrayList<Birthday>();
-				for (Birthday birthday : allBirthdays) {
-					if (birthday.authorId() == fromId) myBirthdays.add(birthday);
-				}
-				
-				String output;
-				if (myBirthdays.isEmpty()) {
-					output = "Пусто, прямо як у москаляки в голові!";
-				}
-				else {
-					output = birthdaysToText(myBirthdays);
-				}
-				secureTextSend(chatId, output);
 			}
 		};
 		
-		Command set_birthday = new Command(Type.PRIVATE, "/setbirthday") {
+		Command set_birthday = new Command(CommandType.PRIVATE, "/setbirthday") {
 			@Override
 			public void execute(Message message) {
 				User from = message.from();
@@ -210,17 +236,20 @@ public class Bot extends TelegramBot {
 				ZonedDateTime now = uaDateTimeNow();
 				
 				SessionStore.clear(fromId);
-				List<BirthdaySession> bdaySessions = SessionStore.setBirthday();
+				List<SetBirthdaySession> bdaySessions = SessionStore.setBirthday();
 				
-				BirthdaySession newSession = new BirthdaySession(now, fromId, fullName);
+				SetBirthdaySession newSession = new SetBirthdaySession(now, fromId, fullName);
 				bdaySessions.add(newSession);
 			}
 		};
 		
-		Command del_birthday = new Command(Type.PRIVATE, "/delbirthday") {
+		Command del_birthday = new Command(CommandType.PRIVATE, "/delbirthday") {
 			@Override
 			public void execute(Message message) {
+				long fromId = message.from().id();
+				long chatId = message.chat().id();
 				
+				delBirthdays(fromId, chatId);
 			}
 		};
 		

@@ -1,30 +1,34 @@
 package tgAyeBot;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 
 public class Command {
-	enum Type {
+	enum CommandType {
 		PRIVATE, GROUP, PRIVATE_AND_GROUP;
 	}
-	private Type type;
+	public static Command[] commands;
+	
+	private CommandType type;
 	private String command;
 	
-	public Command(Type type, String command) {
+	public Command(CommandType type, String command) {
 		setType(type);
 		setCommand(command);
 	}
 	
-	public Type type() {
+	public CommandType type() {
 		return this.type;
 	}
 	public String command() {
 		return this.command;
 	}
 	
-	public void setType(Type type) {
+	public void setType(CommandType type) {
 		this.type = type;
 	}
 	public void setCommand(String command) {
@@ -35,4 +39,6 @@ public class Command {
 	public void execute(Message message) {
 		
 	}
+	
+	
 }
