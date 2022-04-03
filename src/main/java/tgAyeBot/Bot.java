@@ -276,6 +276,12 @@ public class Bot extends TelegramBot {
 		}
 	}
 	
+	public boolean userIsAnonymous(long userId) throws FileNotFoundException {
+		List<Long> anonymousList = Bot.readAnonymous();
+		boolean anonymous = anonymousList.contains(userId);
+		return anonymous;
+	}
+	
 	public ChatMember botGetChatMember(long chatId, long userId) {
 		GetChatMember request = new GetChatMember(chatId, userId);
     	GetChatMemberResponse getChatMemberResponse = this.execute(request);

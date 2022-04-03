@@ -62,9 +62,7 @@ public class BirthdaySession extends Session implements BirthdayInterface{
 		this.text = text;
 	}
 	
-	public Birthday toBirthday() throws FileNotFoundException {
-		List<Long> anonymousList = Bot.readAnonymous();
-		boolean userAnonymous = anonymousList.contains( authorId() );
+	public Birthday toBirthday(boolean anonymous) throws FileNotFoundException {
 		
 		long authorId = authorId();
 		long contactId = contactId();
@@ -73,7 +71,7 @@ public class BirthdaySession extends Session implements BirthdayInterface{
 		String text = text();
 		
 		String authorName;
-		if (userAnonymous) authorName = "АНОНІМУС";
+		if (anonymous) authorName = "АНОНІМУС";
 		else authorName = authorName();
 		
 		Birthday birthday = new Birthday(authorId, authorName, contactId, contactName, birthdayDate, text);
