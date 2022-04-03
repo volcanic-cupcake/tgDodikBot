@@ -228,6 +228,8 @@ public class Bot extends TelegramBot {
 			public void execute(Message message) {
 				User from = message.from();
 				long fromId = from.id();
+				long chatId = message.chat().id();
+				
 				String fullName = "";
 				String firstName = from.firstName();
 				String lastName = from.lastName();
@@ -240,6 +242,11 @@ public class Bot extends TelegramBot {
 				
 				SetBirthdaySession newSession = new SetBirthdaySession(now, fromId, fullName);
 				bdaySessions.add(newSession);
+				
+				String text =
+						  "Гаразд!\n"
+						+ "скинь мені телеграм контакт людини!";
+				SendMessage send = new SendMessage(chatId, text);
 			}
 		};
 		
