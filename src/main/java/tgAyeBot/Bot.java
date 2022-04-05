@@ -20,6 +20,7 @@ import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.GetChatMember;
 import com.pengrad.telegrambot.request.GetMe;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.GetChatMemberCountResponse;
 import com.pengrad.telegrambot.response.GetChatMemberResponse;
 import com.pengrad.telegrambot.response.GetMeResponse;
 
@@ -29,6 +30,7 @@ import tgAyeBot.Command.CommandType;
 public class Bot extends TelegramBot {
 	
 	private final String USERNAME = "@" + botGetMe().username();
+	List<BotChat> chats = new ArrayList<BotChat>();
 	
 	public Bot(String token) {
 		super(token);
@@ -70,7 +72,7 @@ public class Bot extends TelegramBot {
 	public SendMessage helpMessage(long chatId) {
 		String text =
 				"[ УСІ ЧАТИ ]\n"
-				+ "/help - ти це щойно прописав блядь\n"
+				+ "/help - чит на легендарки бравл старс \n"
 				+ "/youtube - плейлист з поясненням на Ютубі\n"
 				+ "/russian_warship :D\n\n"
 				
@@ -247,6 +249,7 @@ public class Bot extends TelegramBot {
 						  "Гаразд!\n"
 						+ "скинь мені телеграм контакт людини!";
 				SendMessage send = new SendMessage(chatId, text);
+				bot.execute(send);
 			}
 		};
 		

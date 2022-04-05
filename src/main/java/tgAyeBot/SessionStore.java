@@ -25,19 +25,6 @@ public abstract class SessionStore {
 		
 		//add new stuff here as in the example
 		
-		
-		/*Iterator<SetBirthdaySession> setBirthdayIterator = setBirthday.iterator();
-		while (setBirthdayIterator.hasNext()) {
-			SetBirthdaySession session = setBirthdayIterator.next();
-			if (session.authorId() == userId) setBirthday.remove(session);
-		}
-		//example ends
-		
-		Iterator<DelBirthdaySession> delBirthdayIterator = delBirthday.iterator();
-		while (delBirthdayIterator.hasNext()) {
-			DelBirthdaySession session = delBirthdayIterator.next();
-			if (session.authorId() == userId) delBirthday.remove(session);
-		}*/
 	}
 	
 	public static List<SetBirthdaySession> setBirthday() {

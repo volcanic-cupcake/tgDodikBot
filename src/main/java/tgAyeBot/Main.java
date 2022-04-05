@@ -13,26 +13,33 @@ public class Main {
 	public static void main(String[] args) throws IOException {
 		String token = TextFile.read(Resource.TOKEN.path);
 		Bot bot = new Bot(token);
-		MessageHandler.setBot(bot);
-		MessageHandler.setCommands( bot.commands() );
+		bot.chats = BotChat.readChats();
+		
+		MessageHandler handler = new MessageHandler(bot);
 		
 		// Listening for updates
 		bot.setUpdatesListener(updates -> {
+			
 		    for (Update update : updates) {
 		    	Message message = update.message();
 		    	if (message != null) {
-		    		Type type = message.chat().type();
-		    		switch (type) {
-		    		case Private:
-		    			MessageHandler.Private(message);
-		    			break;
-		    		case group:
-		    		case supergroup:
-		    			MessageHandler.group(message);
-		    			break;
-		    		default:
-		    			break;
+		    		if (message.text() != null) {
+			    		Type type = message.chat().type();
+			    		switch (type) {
+			    		case Private:
+			    			handler.Private(message);
+			    			break;
+			    		case group:
+			    		case supergroup:
+			    			handler.group(message);
+			    			break;
+			    		default:
+			    			break;
+			    		}
 		    		}
+		    		
+		    		try { handler.updateChatData(bot.chats, message); }
+		    		catch (IOException e) {}
 		    	}
 		    }
 		    return UpdatesListener.CONFIRMED_UPDATES_ALL;
