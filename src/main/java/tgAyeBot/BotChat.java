@@ -25,28 +25,34 @@ public class BotChat {
 	public static List<BotChat> readChats() throws FileNotFoundException {
 		List<BotChat> chats = new ArrayList<BotChat>();
 		List<String> lines = TextFile.readLines(Resource.chats.path);
+
+		if ( lines.isEmpty() ) return chats;
 		
+		long chatId = 0;
 		List<Long> chatMembers = new ArrayList<Long>();
-		long chatId = Long.parseLong( lines.get(0) );
-		lines.remove(0);
-		
+		boolean nextChatId = true;
 		for (String line : lines) {
-			boolean isChatId = ! line.startsWith("\t");
-			
-			if (isChatId) {
-				BotChat chat = new BotChat(chatId, chatMembers);
-				chats.add(chat);
-				
+			if (nextChatId) {
 				chatId = Long.parseLong(line);
+				nextChatId = false;
+			}
+			else if ( line.contentEquals("__________") ) {
+				List<Long> members = new ArrayList<Long>();
+				for (long id : chatMembers) {
+					members.add(id);
+				}
+				
+				BotChat newChat = new BotChat(chatId, members);
+				chats.add(newChat);
+				
 				chatMembers.clear();
+				nextChatId = true;
 			}
 			else {
-				String memberLine = line;
-				memberLine = memberLine.substring(1);
-				chatMembers.add( Long.parseLong(memberLine) );
+				chatMembers.add( Long.parseLong(line) );
 			}
 		}
-		
+
 		return chats;
 	}
 	
@@ -55,8 +61,9 @@ public class BotChat {
 		for (BotChat chat : chats) {
 			lines.add( Long.toString(chat.id) );
 			for (long member : chat.members) {
-				lines.add("\t" + Long.toString(member) );
+				lines.add( Long.toString(member) );
 			}
+			lines.add("__________");
 		}
 		
 		TextFile.writeLines(Resource.chats.path, lines, false);

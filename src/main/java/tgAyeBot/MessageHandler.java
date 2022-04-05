@@ -100,7 +100,7 @@ public class MessageHandler {
 	}
 	
 	private void joinedUsersMessage(List<BotChat> chats, long chatId, long fromId, User[] joinedUsers) throws IOException {
-		
+	
 		//gathers all userIds in one list
 		List<Long> userIds = new ArrayList<Long>();
 		for (User joinedUser : joinedUsers) {
@@ -115,11 +115,15 @@ public class MessageHandler {
 			if (chatExists) {
 				//adds new userIds to the chats list and the text database
 				boolean containsNewUser = false;
+				boolean changes = false; //whether users have been removed/added
 				for (long userId : userIds) {
 					containsNewUser = !chat.members().contains(userId);
-					if (containsNewUser) chat.members().add(userId);
+					if (containsNewUser) {
+						chat.members().add(userId);
+						changes = true;
+					}
 				}
-				if (containsNewUser) BotChat.writeChats(chats);
+				if (changes) BotChat.writeChats(chats);
 				break;
 			}
 		}
