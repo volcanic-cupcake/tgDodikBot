@@ -23,8 +23,8 @@ public class Main {
 		    for (Update update : updates) {
 		    	Message message = update.message();
 		    	if (message != null) {
+		    		Type type = message.chat().type();
 		    		if (message.text() != null) {
-			    		Type type = message.chat().type();
 			    		switch (type) {
 			    		case Private:
 			    			handler.Private(message);
@@ -32,13 +32,15 @@ public class Main {
 			    		case group:
 			    		case supergroup:
 			    			handler.group(message);
-			    			try { handler.updateChatData(bot.chats, message); }
-				    		catch (IOException e) {}
-			    			
 			    			break;
 			    		default:
 			    			break;
 			    		}
+		    		}
+		    		
+		    		if (type != Type.Private) {
+		    			try { handler.updateChatData(bot.chats, message); }
+			    		catch (IOException e) {}
 		    		}
 		    	}
 		    }
