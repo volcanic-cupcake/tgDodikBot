@@ -22,6 +22,7 @@ public class Main {
 			
 		    for (Update update : updates) {
 		    	Message message = update.message();
+		    	
 		    	if (message != null) {
 		    		Type type = message.chat().type();
 		    		if (message.text() != null) {
@@ -38,6 +39,9 @@ public class Main {
 			    		}
 		    		}
 		    		
+		    		if (type == Type.Private) {
+		    			handler.setBirthdaySession(message);
+		    		}
 		    		if (type != Type.Private) {
 		    			try { handler.updateChatData(bot.chats, message); }
 			    		catch (IOException e) {}

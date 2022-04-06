@@ -5,6 +5,7 @@ package tgAyeBot;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -43,7 +44,7 @@ public class Bot extends TelegramBot {
 		ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, zoneId);
 		return zdt;
 	}
-	public static ZonedDateTime uaDateTime(String dateString) { //accepts dd:MM format
+	public static ZonedDateTime uaDateTime(String dateString) { //accepts dd.MM format
 		dateString = dateString.strip();
 		int dayInput = 0;
 		int monthInput = 0;
@@ -66,28 +67,36 @@ public class Bot extends TelegramBot {
 		if (isThisYear) year = now.getYear();
 		else year = now.getYear() + 1;
 		
-		ZonedDateTime zdt = ZonedDateTime.of(year, monthInput, dayInput, 0, 0, 0, 0, zoneId);
+		ZonedDateTime zdt;
+		try {
+			zdt = ZonedDateTime.of(year, monthInput, dayInput, 0, 0, 0, 0, zoneId);
+		}
+		catch (DateTimeException e) {
+			zdt = null;
+		}
 		return zdt;
 	}
 	
 	public SendMessage helpMessage(long chatId) {
 		String text =
-				"[ УСІ ЧАТИ ]\n"
+				"🔶УСІ ЧАТИ🔶\n"
 				+ "/help - чит на легендарки бравл старс\n"
+				+ "/youtube - плейлист з поясненням на Ютубі\n"
+				+ "/russian_warship - спробуй :D\n"
 				+ "/privacy - які данні я збираю\n"
 				+ "/creator - автор бота\n"
-				+ "/youtube - плейлист з поясненням на Ютубі\n"
-				+ "/russian_warship :D\n\n"
+				+ "\n"
 				
-				+ "[ ЛС ЗІ МНОЮ ]\n"
-				+ "/cancel - відмінити лайно\n"
+				+ "🔶ДИРЕКТ ЗІ МНОЮ🔶\n"
+				+ "/cancel - відмінити попередню операцію\n"
 				+ "/anonymous - анонімний режим\n"
 				+ "/setbirthday - зберегти привітання на ДН\n"
 				+ "/delbirthday - видалити привітання на ДН\n"
-				+ "/mybirthdays - список привітань на ДН\n\n"
+				+ "/mybirthdays - список привітань на ДН\n"
+				+ "\n"
 				
-				+ "[ ГРУПОВІ ЧАТИ ]\n"
-				+ "/pidoras - pidoras";
+				+ "🔶ГРУПОВІ ЧАТИ🔶\n"
+				+ "/pidoras - pidoras\n";
 		SendMessage send = new SendMessage(chatId, text);
 		return send;
 	}
@@ -160,8 +169,8 @@ public class Bot extends TelegramBot {
 						
 						+ "Я в жодному разі НЕ зберігаю:\n"
 						+ "\n"
-						+ "🔸повідомлення\n"
-						+ "🔸пароль від вашого акаунту бравл старс\n";
+						+ "🔻повідомлення\n"
+						+ "🔻пароль від вашого акаунту бравл старс\n";
 				SendMessage send = new SendMessage(chatId, text);
 				bot.execute(send);
 			}
@@ -196,6 +205,15 @@ public class Bot extends TelegramBot {
 				String text = "...иди нахуй!";
 				SendMessage send = new SendMessage(chatId, text)
 						.replyToMessageId(messageId);
+				bot.execute(send);
+			}
+		};
+		
+		Command start = new Command(CommandType.PRIVATE, "/start") {
+			@Override
+			public void execute(Message message) {
+				long chatId = message.chat().id();
+				SendMessage send = helpMessage(chatId);
 				bot.execute(send);
 			}
 		};
@@ -282,8 +300,18 @@ public class Bot extends TelegramBot {
 				bdaySessions.add(newSession);
 				
 				String text =
-						  "Гаразд!\n"
-						+ "скинь мені телеграм контакт людини!";
+						 	"Будь ласка, надішліть мені контакт друга, якого ми привітаємо :)\n"
+						  + "Також можна переслати сюди будь-яке його повідомлення!\n"
+						  + "\n"
+						  + "Пам'ятайте! Я надішлю ваше привітання у чати, де побачу "
+						  + "цю людину, навіть якщо вас там немає.\n"
+						  + "\n"
+						  + "Також усім відобразиться ваше ім'я, але ви можете увімкнути "
+						  + "анонімний режим командою /anonymous\n"
+						  + "\n"
+						  + "Якщо ви вкажете сьогоднішню дату, привітання прийде "
+						  + "наступного року, адже про День Народження друзів треба "
+						  + "пам'ятати заздалегідь :o";
 				SendMessage send = new SendMessage(chatId, text);
 				bot.execute(send);
 			}
@@ -300,7 +328,7 @@ public class Bot extends TelegramBot {
 		};
 		
 		Command[] commands = {
-				help, creator, youtube, russian_warship, cancel, anonymous,
+				help, creator, youtube, russian_warship, start, cancel, anonymous,
 				set_birthday, del_birthday, my_birthdays, privacy
 		};
 		return commands;

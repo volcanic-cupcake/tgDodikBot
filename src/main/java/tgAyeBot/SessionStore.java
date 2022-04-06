@@ -8,8 +8,13 @@ public abstract class SessionStore {
 	
 	private static List<SetBirthdaySession> setBirthday = new ArrayList<SetBirthdaySession>();
 	private static List<DelBirthdaySession> delBirthday = new ArrayList<DelBirthdaySession>();
-	// also add new stuff to clear() method!
-
+	// also add new stuff to clear(long) and clear() methods!
+	
+	public static void clear() {
+		setBirthday.clear();
+		delBirthday.clear();
+		//add new stuff here
+	}
 	public static void clear(long userId) {
 		//example begins
 		for (SetBirthdaySession session : setBirthday) {

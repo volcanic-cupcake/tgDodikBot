@@ -1,11 +1,14 @@
 package tgAyeBot;
 
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.pengrad.telegrambot.model.Contact;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.User;
+import com.pengrad.telegrambot.request.SendMessage;
 
 
 
@@ -54,6 +57,145 @@ public class MessageHandler {
 		groupCommands(message);
 	}
 	
+	
+	
+	public void setBirthdaySession(Message message) {
+		
+		//array of text messages this session ignores
+		List<String> ignore = new ArrayList<String>();
+		ignore.add("/anonymous");
+		
+		long fromId = message.from().id();
+		List<SetBirthdaySession> list = SessionStore.setBirthday();
+		
+		for (SetBirthdaySession setBirthday : list) {
+			
+			//in case there is an existing SetBirthdaySession of that user
+			if (setBirthday.authorId() == fromId) {
+				
+				boolean contactExpected = setBirthday.contactId() == 0;
+				boolean dateExpected = !contactExpected && setBirthday.birthdayDate() == null;
+				boolean textExpected = !dateExpected && setBirthday.text() == null;
+				
+				String text = message.text();
+				Contact contact = message.contact();
+				User from = message.from();
+				User forwardFrom = message.forwardFrom();
+				long chatId = message.chat().id();
+				
+				//break, if it contains something from ignore list
+				boolean fromIgnoreList = ignore.contains(text);
+				if (fromIgnoreList) break;
+				
+				String respond = "";
+				if (contactExpected) {
+					boolean contactReceived = contact != null;
+					boolean contactChecked = false;
+					if (contactReceived) { //checks if received contact is not sent by the same person
+						contactChecked = contact.userId() != from.id();
+					}
+					
+					boolean forwardReceived = forwardFrom != null;
+					boolean forwardChecked = false;
+					if (forwardReceived) { //checks if forward message is not from the same person
+						forwardChecked = forwardFrom.id() != from.id();
+					}
+					
+					boolean contactApproved = contactReceived && contactChecked;
+					boolean forwardApproved = forwardReceived && forwardChecked;
+					boolean successful = contactApproved || forwardApproved;
+					
+					//changing session parameters
+					if (successful) {
+						if (contactApproved) {
+							long contactId = contact.userId();
+							
+							String fullName = "";
+							String firstName = contact.firstName();
+							String lastName = contact.lastName();
+							if (firstName != null) fullName += firstName;
+							if (lastName != null) fullName += " " + lastName;
+							
+							setBirthday.setContactId(contactId);
+							setBirthday.setContactName(fullName);
+						}
+						else if (forwardApproved) {
+							long forwardFromId = forwardFrom.id();
+							
+							String fullName = "";
+							String firstName = forwardFrom.firstName();
+							String lastName = forwardFrom.lastName();
+							if (firstName != null) fullName += firstName;
+							if (lastName != null) fullName += " " + lastName;
+							
+							setBirthday.setContactId(forwardFromId);
+							setBirthday.setContactName(fullName);
+						}
+						
+					}
+					
+					//preparing a message respond
+					if (successful) {
+						respond = "Чудово! Тепер надійшли мені дату народження у форматі dd.MM\n"
+								+ "\n"
+								+ "Наприклад 05.12 або 22.04 або 03.06";
+					}
+					else {
+						
+						boolean selfCongratulate =
+								(contactReceived && !contactChecked) ||
+								(forwardReceived && !forwardChecked);
+						if (selfCongratulate) {
+							respond = "Самого себе вітати неможна, мене не обдуриш :D";
+						}
+						else {
+							respond = "Виникла помилка :(\n"
+									+ "\n"
+									+ "Можливі причини:\n"
+									+ "🔻я не можу отримати данні про цю людину через її налаштування конфіденційності\n"
+									+ "🔻те, що ви прислали, не є контактом або пересланим від когось повідомленням\n";
+						}
+						
+					}
+				}
+				else if (dateExpected) {
+					boolean textReceived = text != null;
+					if (textReceived) {
+						ZonedDateTime date = Bot.uaDateTime(text);
+						boolean successful = date != null;
+						
+						if (successful) {
+							setBirthday.setBirthdayDate(date);
+							
+							respond = "Прекрасно! А тепер, час написати текст привітання :D\n"
+									+ "\n"
+									+ "Максимальна кількість символів: 1000";
+						}
+						else {
+							respond = "Виникла помилка :(\n"
+									+ "\n"
+									+ "Можливі причини:"
+									+ "🔻ви вказали дату у неправильному форматі"
+									+ "🔻ви вказали ім'я своєї бабусі замість дати";
+						}
+					}
+					else {
+						respond = "Друже, краще надійшли мені текстове повідомлення "
+								+ "з датою Дня Народження твоєго друга";
+					}
+				}
+				else if (textExpected) {
+					
+				}
+				
+				SendMessage sendMessage = new SendMessage(chatId, respond);
+				bot.execute(sendMessage);
+				break;
+			}
+			
+		}
+	}
+	
 	public void updateChatData(List<BotChat> chats, Message message) throws IOException {
 		
 		User[] joinedUsers = message.newChatMembers();
@@ -70,7 +212,6 @@ public class MessageHandler {
 		else if (isJoinedUsers) joinedUsersMessage(chats, chatId, fromId, joinedUsers);
 		else if (isLeftUser) leftUserMessage( chats, chatId, fromId, leftUser.id() );
 	}
-	
 	
 	private void normalMessage(List<BotChat> chats, long chatId, long fromId) throws IOException {
 		//checks if a chat already exists

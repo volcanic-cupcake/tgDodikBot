@@ -9,8 +9,10 @@ public class SetBirthdaySession extends Session implements BirthdayInterface{
 	
 	private String authorName;
 	
+	
 	private long contactId = 0;
 	private String contactName = null;
+	
 	private ZonedDateTime birthdayDate = null;
 	private String text = null;
 	
