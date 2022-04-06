@@ -19,6 +19,7 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.GetChatMember;
 import com.pengrad.telegrambot.request.GetMe;
+import com.pengrad.telegrambot.request.SendContact;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.GetChatMemberCountResponse;
 import com.pengrad.telegrambot.response.GetChatMemberResponse;
@@ -74,6 +75,7 @@ public class Bot extends TelegramBot {
 				"[ УСІ ЧАТИ ]\n"
 				+ "/help - чит на легендарки бравл старс\n"
 				+ "/privacy - які данні я збираю\n"
+				+ "/creator - автор бота\n"
 				+ "/youtube - плейлист з поясненням на Ютубі\n"
 				+ "/russian_warship :D\n\n"
 				
@@ -162,6 +164,17 @@ public class Bot extends TelegramBot {
 						+ "🔸пароль від вашого акаунту бравл старс\n";
 				SendMessage send = new SendMessage(chatId, text);
 				bot.execute(send);
+			}
+		};
+		
+		Command creator = new Command(CommandType.PRIVATE_AND_GROUP, "/creator") {
+			@Override
+			public void execute(Message message) {
+				long chatId = message.chat().id();
+				String phoneNumber = "+380672704424";
+				String firstName = "Єгор";
+				SendContact contact = new SendContact(chatId, phoneNumber, firstName);
+				bot.execute(contact);
 			}
 		};
 		
@@ -287,7 +300,7 @@ public class Bot extends TelegramBot {
 		};
 		
 		Command[] commands = {
-				help, youtube, russian_warship, cancel, anonymous,
+				help, creator, youtube, russian_warship, cancel, anonymous,
 				set_birthday, del_birthday, my_birthdays, privacy
 		};
 		return commands;
