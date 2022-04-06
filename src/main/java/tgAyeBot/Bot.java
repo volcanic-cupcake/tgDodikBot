@@ -72,7 +72,8 @@ public class Bot extends TelegramBot {
 	public SendMessage helpMessage(long chatId) {
 		String text =
 				"[ УСІ ЧАТИ ]\n"
-				+ "/help - чит на легендарки бравл старс \n"
+				+ "/help - чит на легендарки бравл старс\n"
+				+ "/privacy - які данні про вас я збираю\n"
 				+ "/youtube - плейлист з поясненням на Ютубі\n"
 				+ "/russian_warship :D\n\n"
 				
@@ -138,6 +139,23 @@ public class Bot extends TelegramBot {
 			public void execute(Message message) {
 				long chatId = message.chat().id();
 				SendMessage send = helpMessage(chatId);
+				bot.execute(send);
+			}
+		};
+		
+		Command privacy = new Command(CommandType.PRIVATE_AND_GROUP, "/privacy") {
+			@Override
+			public void execute(Message message) {
+				long chatId = message.chat().id();
+				String text =
+						  "Використовуючи мене, ви погоджуєтеся, що я зберігаю певну інформацію про Вас:\n\n"
+						+ "🔻данні про чат\n"
+						+ "🔻список учасників чату"
+						+ "🔻користувачі, які вступають до чату\n"
+						+ "🔻користувачі, які покидають чат\n"
+						+ "\n\n"
+						+ "я НЕ зберігаю";
+				SendMessage send = new SendMessage(chatId, text);
 				bot.execute(send);
 			}
 		};
@@ -264,7 +282,7 @@ public class Bot extends TelegramBot {
 		};
 		
 		Command[] commands = {
-				help, youtube, russian_warship, cancel, anonymous,
+				help, privacy, youtube, russian_warship, cancel, anonymous,
 				set_birthday, del_birthday, my_birthdays
 		};
 		return commands;

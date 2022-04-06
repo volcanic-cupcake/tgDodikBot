@@ -32,14 +32,14 @@ public class Main {
 			    		case group:
 			    		case supergroup:
 			    			handler.group(message);
+			    			try { handler.updateChatData(bot.chats, message); }
+				    		catch (IOException e) {}
+			    			
 			    			break;
 			    		default:
 			    			break;
 			    		}
 		    		}
-		    		
-		    		try { handler.updateChatData(bot.chats, message); }
-		    		catch (IOException e) {}
 		    	}
 		    }
 		    return UpdatesListener.CONFIRMED_UPDATES_ALL;
