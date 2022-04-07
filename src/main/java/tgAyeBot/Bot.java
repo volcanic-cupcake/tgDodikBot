@@ -420,13 +420,15 @@ public class Bot extends TelegramBot {
 		GetUpdatesResponse unhandledResponse = this.execute(getUnhandled);
 		List<Update> unhandledList = unhandledResponse.updates();
 		
-		int highestUpdateId = 0;
-		for (Update unhandled : unhandledList) {
-			int updateId = unhandled.updateId();
-			if (updateId > highestUpdateId) highestUpdateId = updateId;
+		if (unhandledList != null) {
+			int highestUpdateId = 0;
+			for (Update unhandled : unhandledList) {
+				int updateId = unhandled.updateId();
+				if (updateId > highestUpdateId) highestUpdateId = updateId;
+			}
+			
+			GetUpdates confirmUnhandled = new GetUpdates().offset(highestUpdateId + 1).timeout(0);
+			this.execute(confirmUnhandled);
 		}
-		
-		GetUpdates confirmUnhandled = new GetUpdates().offset(highestUpdateId + 1).timeout(0);
-		this.execute(confirmUnhandled);
 	}
 }

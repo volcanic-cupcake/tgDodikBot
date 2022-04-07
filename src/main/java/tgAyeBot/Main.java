@@ -31,7 +31,7 @@ public class Main {
 		    	
 		    	Message message = update.message();
 		    	
-		    	if (message != null) {		    		
+		    	if (message != null) {		
 		    		Type type = message.chat().type();
 		    		String text = message.text();
 		    		if (text != null) {
