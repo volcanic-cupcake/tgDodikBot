@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.Chat.Type;
 import com.pengrad.telegrambot.model.ChatMember;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
@@ -415,7 +416,7 @@ public class Bot extends TelegramBot {
 		else return output;
 	}
 	
-	public void confirmAllUpdates() {
+	public void confirmAllUpdates(MessageHandler handler) {
 		GetUpdates getUnhandled = new GetUpdates().offset(0).timeout(0);
 		GetUpdatesResponse unhandledResponse = this.execute(getUnhandled);
 		List<Update> unhandledList = unhandledResponse.updates();
@@ -423,6 +424,20 @@ public class Bot extends TelegramBot {
 		if (unhandledList != null) {
 			int highestUpdateId = 0;
 			for (Update unhandled : unhandledList) {
+				Message message = unhandled.message();
+				if (message != null) {
+					Type type = message.chat().type();
+					switch (type) {
+					case group:
+					case supergroup:
+						try { handler.updateChatData(this.chats, message); }
+			    		catch (IOException e) {}
+						break;
+					default:
+						break;
+					}
+				}
+				
 				int updateId = unhandled.updateId();
 				if (updateId > highestUpdateId) highestUpdateId = updateId;
 			}

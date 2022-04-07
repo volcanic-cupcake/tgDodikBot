@@ -297,7 +297,7 @@ public class MessageHandler {
 				try {	Birthday.writeBirthdays(birthdays);   }
 				catch (IOException e) {}
 				
-				String response = "Ваше привітання було видалене!";
+				String response = "Ваше привітання було видалено!";
 				SendMessage send = new SendMessage (chatId, response);
 				bot.execute(send);
 				break;
@@ -325,8 +325,8 @@ public class MessageHandler {
 			break;
 		}
 		
-		boolean matches = false;
 		String response = "";
+		boolean matches = false;
 		for (Birthday birthday : birthdays) {
 			matches = birthday.code().contentEquals(code);
 			if (matches) {
