@@ -6,6 +6,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.pengrad.telegrambot.model.Chat.Type;
 import com.pengrad.telegrambot.model.Contact;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.User;
@@ -51,11 +52,25 @@ public class MessageHandler {
 	}
 	
 	public void Private(Message message) {
-		privateCommands(message);
+		String text = message.text();
+		if (text.startsWith("/birthdayremove_")) {
+			SessionStore.clear(message.from().id());
+			birthdayRemove(message);
+		}
+		else if (text.startsWith("/birthdaytext_")) {
+			SessionStore.clear(message.from().id());
+			birthdayText(message);
+		}
+		else privateCommands(message);
 	}
 	
-	public void group(Message message) {		
-		groupCommands(message);
+	public void group(Message message) {
+		String text = message.text();
+		if (text.startsWith("/birthdaytext_")) {
+			SessionStore.clear(message.from().id());
+			birthdayText(message);
+		}
+		else groupCommands(message);
 	}
 	
 	private List<String> commandWordings() {
@@ -119,7 +134,12 @@ public class MessageHandler {
 					
 					boolean contactApproved = contactReceived && contactChecked;
 					boolean forwardApproved = forwardReceived && forwardChecked;
-					boolean successful = contactApproved || forwardApproved;
+					
+					boolean birthdayExists = false;
+					if (contactApproved) birthdayExists = birthdayExists(from.id(), contact.userId());
+					else if (forwardApproved) birthdayExists = birthdayExists(from.id(), forwardFrom.id());
+					
+					boolean successful = (contactApproved || forwardApproved) && !birthdayExists;
 					
 					//changing session parameters
 					if (successful) {
@@ -157,12 +177,14 @@ public class MessageHandler {
 								+ "Наприклад 05.12 або 22.04 або 03.06";
 					}
 					else {
-						
 						boolean selfCongratulate =
 								(contactReceived && !contactChecked) ||
 								(forwardReceived && !forwardChecked);
 						if (selfCongratulate) {
 							respond = "Самого себе вітати неможна, мене не обдуриш :D";
+						}
+						else if (birthdayExists) {
+							respond = "Ви вже створили привітання для цієї людини!";
 						}
 						else {
 							respond = "Виникла помилка\n"
@@ -236,7 +258,87 @@ public class MessageHandler {
 			
 		}
 	}
+	private boolean birthdayExists(long fromId, long contactId) {
+		List<Birthday> birthdays = null;
+		try {	birthdays = Birthday.readBirthdays();	}
+		catch (FileNotFoundException e) {}
+		
+		boolean exists = false;
+		for (Birthday birthday : birthdays) {
+			boolean isDisplayed = birthday.isDisplayed();
+			boolean fromIdMatch = birthday.authorId() == fromId;
+			boolean contactIdMatch = birthday.contactId() == contactId;
+			
+			exists = (fromIdMatch && contactIdMatch) && !isDisplayed;
+			if (exists) break;
+		}
+		
+		return exists;
+	}
 	
+	
+	private void birthdayRemove(Message message) {
+		List<Birthday> birthdays = null;
+		try {	birthdays = Birthday.readBirthdays();	}
+		catch (FileNotFoundException e) {}
+		
+		String text = message.text();
+		long fromId = message.from().id();
+		long chatId = message.chat().id();
+		
+		String code = text.replace("/birthdayremove_", "");
+		
+		for (Birthday birthday : birthdays) {
+			boolean matches = birthday.code().contentEquals(code);
+			boolean isAuthor = birthday.authorId() == fromId;
+			boolean approved = matches && isAuthor;
+			if (approved) {
+				birthdays.remove(birthday);
+				try {	Birthday.writeBirthdays(birthdays);   }
+				catch (IOException e) {}
+				
+				String response = "Ваше привітання було видалене!";
+				SendMessage send = new SendMessage (chatId, response);
+				bot.execute(send);
+				break;
+			}
+		}
+	}
+	private void birthdayText(Message message) {
+		List<Birthday> birthdays = null;
+		try {	birthdays = Birthday.readBirthdays();	}
+		catch (FileNotFoundException e) {}
+		
+		String text = message.text();
+		long chatId = message.chat().id();
+		
+		String code = "";
+		switch (message.chat().type()) {
+		case Private:
+			code = text.replace("/birthdaytext_", "");
+			break;
+		case group:
+		case supergroup:
+			code = text.replace("/birthdaytext_", "").replace(bot.username(), "");
+			break;
+		default:
+			break;
+		}
+		
+		boolean matches = false;
+		String response = "";
+		for (Birthday birthday : birthdays) {
+			matches = birthday.code().contentEquals(code);
+			if (matches) {
+				response = birthday.text();
+				break;
+			}
+		}
+		
+		if (!matches) response = "Такого тексту не існує!";
+		SendMessage send = new SendMessage(chatId, response);
+		bot.execute(send);
+	}
 	public void updateChatData(List<BotChat> chats, Message message) throws IOException {
 		
 		User[] joinedUsers = message.newChatMembers();

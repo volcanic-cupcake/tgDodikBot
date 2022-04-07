@@ -2,12 +2,15 @@ package tgAyeBot;
 
 
 import java.io.IOException;
+import java.util.List;
 
 import com.pengrad.telegrambot.*;
 import com.pengrad.telegrambot.model.Chat.Type;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.GetUpdates;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.GetUpdatesResponse;
 
 public class Main {
 
@@ -16,17 +19,22 @@ public class Main {
 		Bot bot = new Bot(token);
 		bot.chats = BotChat.readChats();
 		
+		
+		
 		MessageHandler handler = new MessageHandler(bot);
 		
+		bot.confirmAllUpdates();
 		// Listening for updates
 		bot.setUpdatesListener(updates -> {
 			
 		    for (Update update : updates) {
+		    	
 		    	Message message = update.message();
 		    	
 		    	if (message != null) {		    		
 		    		Type type = message.chat().type();
-		    		if (message.text() != null) {
+		    		String text = message.text();
+		    		if (text != null) {
 			    		switch (type) {
 			    		case Private:
 			    			handler.Private(message);

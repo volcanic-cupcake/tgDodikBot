@@ -20,11 +20,13 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.GetChatMember;
 import com.pengrad.telegrambot.request.GetMe;
+import com.pengrad.telegrambot.request.GetUpdates;
 import com.pengrad.telegrambot.request.SendContact;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.GetChatMemberCountResponse;
 import com.pengrad.telegrambot.response.GetChatMemberResponse;
 import com.pengrad.telegrambot.response.GetMeResponse;
+import com.pengrad.telegrambot.response.GetUpdatesResponse;
 
 import tgAyeBot.Command.CommandType;
 
@@ -103,7 +105,9 @@ public class Bot extends TelegramBot {
 		List<Birthday> allBirthdays = Birthday.readBirthdays();
 		List<Birthday> myBirthdays = new ArrayList<Birthday>();
 		for (Birthday birthday : allBirthdays) {
-			if (birthday.authorId() == fromId) myBirthdays.add(birthday);
+			boolean authorMatch = birthday.authorId() == fromId;
+			boolean isDisplayed = birthday.isDisplayed();
+			if (authorMatch && !isDisplayed) myBirthdays.add(birthday);
 		}
 		
 		boolean isEmpty;
@@ -262,7 +266,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command my_birthdays = new Command(CommandType.PRIVATE, false, "/mybirthdays") {
+		Command my_birthdays = new Command(CommandType.PRIVATE, true, "/mybirthdays") {
 			@Override
 			public void execute(Message message) {
 				long fromId = message.from().id();
@@ -438,5 +442,20 @@ public class Bot extends TelegramBot {
 		
 		if (output.contentEquals("")) return null;
 		else return output;
+	}
+	
+	public void confirmAllUpdates() {
+		GetUpdates getUnhandled = new GetUpdates().offset(0).timeout(0);
+		GetUpdatesResponse unhandledResponse = this.execute(getUnhandled);
+		List<Update> unhandledList = unhandledResponse.updates();
+		
+		int highestUpdateId = 0;
+		for (Update unhandled : unhandledList) {
+			int updateId = unhandled.updateId();
+			if (updateId > highestUpdateId) highestUpdateId = updateId;
+		}
+		
+		GetUpdates confirmUnhandled = new GetUpdates().offset(highestUpdateId + 1).timeout(0);
+		this.execute(confirmUnhandled);
 	}
 }
