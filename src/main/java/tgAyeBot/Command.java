@@ -14,15 +14,20 @@ public class Command {
 	public static Command[] commands;
 	
 	private CommandType type;
+	private boolean terminatesSessions;
 	private String command;
 	
-	public Command(CommandType type, String command) {
+	public Command(CommandType type, boolean terminatesSessions, String command) {
 		setType(type);
+		setTerminatesSessions(terminatesSessions);
 		setCommand(command);
 	}
 	
 	public CommandType type() {
 		return this.type;
+	}
+	public boolean terminatesSessions() {
+		return this.terminatesSessions;
 	}
 	public String command() {
 		return this.command;
@@ -30,6 +35,9 @@ public class Command {
 	
 	public void setType(CommandType type) {
 		this.type = type;
+	}
+	public void setTerminatesSessions(boolean terminatesSessions) {
+		this.terminatesSessions = terminatesSessions;
 	}
 	public void setCommand(String command) {
 		this.command = command;

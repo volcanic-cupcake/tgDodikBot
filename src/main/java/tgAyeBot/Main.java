@@ -7,6 +7,7 @@ import com.pengrad.telegrambot.*;
 import com.pengrad.telegrambot.model.Chat.Type;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
 
 public class Main {
 
@@ -23,7 +24,7 @@ public class Main {
 		    for (Update update : updates) {
 		    	Message message = update.message();
 		    	
-		    	if (message != null) {
+		    	if (message != null) {		    		
 		    		Type type = message.chat().type();
 		    		if (message.text() != null) {
 			    		switch (type) {
@@ -39,12 +40,18 @@ public class Main {
 			    		}
 		    		}
 		    		
-		    		if (type == Type.Private) {
+		    		switch(type) {
+		    		case Private:
 		    			handler.setBirthdaySession(message);
-		    		}
-		    		if (type != Type.Private) {
+		    			break;
+		    		case group:
+		    		case supergroup:
 		    			try { handler.updateChatData(bot.chats, message); }
 			    		catch (IOException e) {}
+		    			
+		    			break;
+					default:
+						break;
 		    		}
 		    	}
 		    }

@@ -9,22 +9,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Birthday implements BirthdayInterface {
+	private static String newLineChar = "FIfWdtkdtU";
+	
+	private String code;
 	private long authorId;
 	private String authorName;
 	private long contactId;
 	private String contactName;
 	private ZonedDateTime birthdayDate;
 	private String text;
+	private boolean isDisplayed;
 	
-	Birthday(long authorId, String authorName, long contactId, String contactName, ZonedDateTime birthdayDate, String text) {
+	Birthday(String code, long authorId, String authorName, long contactId, String contactName, ZonedDateTime birthdayDate, String text, boolean isDisplayed) {
+		setCode(code);
 		setAuthorId(authorId);
 		setAuthorName(authorName);
 		setContactId(contactId);
 		setContactName(contactName);
 		setBirthdayDate(birthdayDate);
 		setText(text);
+		setIsDisplayed(isDisplayed);
 	}
 	
+	@Override
+	public String code() {
+		return this.code;
+	}
 	@Override
 	public long authorId() {
 		return this.authorId;
@@ -49,7 +59,15 @@ public class Birthday implements BirthdayInterface {
 	public String text() {
 		return this.text;
 	}
+	public boolean isDisplayed() {
+		return this.isDisplayed;
+	}
 	
+	
+	@Override
+	public void setCode(String code) {
+		this.code = code;
+	}
 	@Override
 	public void setAuthorId(long authorId) {
 		this.authorId = authorId;
@@ -74,61 +92,82 @@ public class Birthday implements BirthdayInterface {
 	public void setText(String text) {
 		this.text = text;
 	}
-	
+	public void setIsDisplayed(boolean isDisplayed) {
+		this.isDisplayed = isDisplayed;
+	}
 	
 	public static List<Birthday> readBirthdays() throws FileNotFoundException {
 		ZoneId zoneId = ZoneId.of("Europe/Kiev");
 		List<Birthday> birthdays = new ArrayList<Birthday>();
 		List<String> lines = TextFile.readLines(Resource.birthdays.path);
+		String codeLine;
 		String authorIdLine;
 		String authorNameLine;
 		String contactIdLine;
 		String contactNameLine;
 		String birthdayDateLine;
 		String textLine;
+		String isDisplayedLine;
 		
+		String code = null;
 		long authorId = 0;
 		String authorName = null;
 		long contactId = 0;
 		String contactName = null;
 		ZonedDateTime birthdayDate = null;
 		String text = null;
+		boolean isDisplayed = false;
+		
 		int counter = 0;
 		for (String line : lines) {
 			switch (counter) {
 			case 0:
+				codeLine = line;
+				code = codeLine;
+				counter++;
+				break;
+			case 1:
 				authorIdLine = line;
 				authorId = Long.parseLong(authorIdLine);
 				counter++;
 				break;
-			case 1:
+			case 2:
 				authorNameLine = line;
 				authorName = authorNameLine;
 				counter++;
 				break;
-			case 2:
+			case 3:
 				contactIdLine = line;
 				contactId = Long.parseLong(contactIdLine);
 				counter++;
 				break;
-			case 3:
+			case 4:
 				contactNameLine = line;
 				contactName = contactNameLine;
 				counter++;
 				break;
-			case 4:
+			case 5:
 				birthdayDateLine = line;
 				long birthdayDateUnix = Long.parseLong(birthdayDateLine);
 				Instant instant = Instant.ofEpochSecond(birthdayDateUnix);
 				birthdayDate = ZonedDateTime.ofInstant(instant, zoneId);
 				counter++;
 				break;
-			case 5:
+			case 6:
 				textLine = line;
-				text = textLine;
-				Birthday birthday = new Birthday(authorId, authorName, contactId, contactName, birthdayDate, text);
+				text = textLine.replace(newLineChar, "\n");
+				counter++;
+				break;
+			case 7:
+				isDisplayedLine = line;
+				String yes = "yes";
+				String no = "no";
+				if (isDisplayedLine.contentEquals(yes)) isDisplayed = true;
+				else if (isDisplayedLine.contentEquals(no)) isDisplayed = false;
 				
+				Birthday birthday = new Birthday(code, authorId, authorName, contactId, contactName, birthdayDate, text, isDisplayed);
 				birthdays.add(birthday);
+				
 				counter = 0;
 				break;
 			}
@@ -138,13 +177,18 @@ public class Birthday implements BirthdayInterface {
 	
 	public static void writeBirthdays(List<Birthday> birthdays) throws IOException {
 		List<String> lines = new ArrayList<String>();
+		String codeLine;
 		String authorIdLine;
 		String authorNameLine;
 		String contactIdLine;
 		String contactNameLine;
 		String birthdayDateLine;
 		String textLine;
+		String isDisplayedLine;
+		
 		for (Birthday birthday : birthdays) {
+			codeLine = birthday.code();
+			
 			authorIdLine = Long.toString( birthday.authorId() );
 			
 			authorNameLine = birthday.authorName();
@@ -156,14 +200,19 @@ public class Birthday implements BirthdayInterface {
 			long birthdayDateUnix = birthday.birthdayDate().toEpochSecond();
 			birthdayDateLine = Long.toString(birthdayDateUnix);
 			
-			textLine = birthday.text();
+			textLine = birthday.text().replace("\n", newLineChar);
 			
+			if ( birthday.isDisplayed() ) isDisplayedLine = "yes";
+			else isDisplayedLine = "no";
+			
+			lines.add(codeLine);
 			lines.add(authorIdLine);
 			lines.add(authorNameLine);
 			lines.add(contactIdLine);
 			lines.add(contactNameLine);
 			lines.add(birthdayDateLine);
 			lines.add(textLine);
+			lines.add(isDisplayedLine);
 			
 			String filePath = Resource.birthdays.path;
 			TextFile.writeLines(filePath, lines, false);

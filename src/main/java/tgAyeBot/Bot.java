@@ -91,8 +91,7 @@ public class Bot extends TelegramBot {
 				+ "/cancel - відмінити попередню операцію\n"
 				+ "/anonymous - анонімний режим\n"
 				+ "/setbirthday - зберегти привітання на ДН\n"
-				+ "/delbirthday - видалити привітання на ДН\n"
-				+ "/mybirthdays - список привітань на ДН\n"
+				+ "/mybirthdays - управління привітаннями на ДН\n"
 				+ "\n"
 				
 				+ "🔶ГРУПОВІ ЧАТИ🔶\n"
@@ -115,7 +114,7 @@ public class Bot extends TelegramBot {
 		}
 		else {
 			isEmpty = false;
-			output = birthdaysToText(myBirthdays);
+			output = myBirthdaysToText(myBirthdays);
 		}
 		secureTextSend(chatId, output);
 		return isEmpty;
@@ -123,7 +122,6 @@ public class Bot extends TelegramBot {
 	
 	public void delBirthdays(long fromId, long chatId) {
 		ZonedDateTime now = uaDateTimeNow();
-		SessionStore.clear(fromId);
 		List<DelBirthdaySession> sessions = SessionStore.delBirthday();
 		DelBirthdaySession newSession = new DelBirthdaySession(fromId, now);
 		sessions.add(newSession);
@@ -145,7 +143,7 @@ public class Bot extends TelegramBot {
 		Bot bot = this;
 		//List<Command> commands = new ArrayList<Command>();
 		
-		Command help = new Command(CommandType.PRIVATE_AND_GROUP, "/help") {
+		Command help = new Command(CommandType.PRIVATE_AND_GROUP, true, "/help") {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
@@ -154,7 +152,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command privacy = new Command(CommandType.PRIVATE_AND_GROUP, "/privacy") {
+		Command privacy = new Command(CommandType.PRIVATE_AND_GROUP, true, "/privacy") {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
@@ -176,7 +174,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command creator = new Command(CommandType.PRIVATE_AND_GROUP, "/creator") {
+		Command creator = new Command(CommandType.PRIVATE_AND_GROUP, true, "/creator") {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
@@ -187,7 +185,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command youtube = new Command(CommandType.PRIVATE_AND_GROUP, "/youtube") {
+		Command youtube = new Command(CommandType.PRIVATE_AND_GROUP, true, "/youtube") {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
@@ -197,7 +195,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command russian_warship = new Command(CommandType.PRIVATE_AND_GROUP, "/russian_warship") {
+		Command russian_warship = new Command(CommandType.PRIVATE_AND_GROUP, true, "/russian_warship") {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
@@ -209,7 +207,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command start = new Command(CommandType.PRIVATE, "/start") {
+		Command start = new Command(CommandType.PRIVATE, true, "/start") {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
@@ -218,21 +216,19 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command cancel = new Command(CommandType.PRIVATE, "/cancel") {
+		Command cancel = new Command(CommandType.PRIVATE, true, "/cancel") {
 			@Override
 			public void execute(Message message) {
 				int messageId = message.messageId();
 				long chatId = message.chat().id();
-				long fromId = message.from().id();
 				
-				SessionStore.clear(fromId);
 				SendMessage send = new SendMessage(chatId, "гаразд")
 						.replyToMessageId(messageId);
 				bot.execute(send);
 			}
 		};
 		
-		Command anonymous = new Command(CommandType.PRIVATE, "/anonymous") {
+		Command anonymous = new Command(CommandType.PRIVATE, false, "/anonymous") {
 			@Override
 			public void execute(Message message) {
 				long fromId = message.from().id();
@@ -266,7 +262,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command my_birthdays = new Command(CommandType.PRIVATE, "/mybirthdays") {
+		Command my_birthdays = new Command(CommandType.PRIVATE, false, "/mybirthdays") {
 			@Override
 			public void execute(Message message) {
 				long fromId = message.from().id();
@@ -279,7 +275,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command set_birthday = new Command(CommandType.PRIVATE, "/setbirthday") {
+		Command set_birthday = new Command(CommandType.PRIVATE, true, "/setbirthday") {
 			@Override
 			public void execute(Message message) {
 				User from = message.from();
@@ -293,15 +289,15 @@ public class Bot extends TelegramBot {
 				if (lastName != null) fullName += " " + lastName;
 				ZonedDateTime now = uaDateTimeNow();
 				
-				SessionStore.clear(fromId);
 				List<SetBirthdaySession> bdaySessions = SessionStore.setBirthday();
 				
 				SetBirthdaySession newSession = new SetBirthdaySession(now, fromId, fullName);
 				bdaySessions.add(newSession);
 				
 				String text =
-						 	"Будь ласка, надішліть мені контакт друга, якого ми привітаємо :)\n"
-						  + "Також можна переслати сюди будь-яке його повідомлення!\n"
+						 	"Будь ласка, надішліть мені контакт друга, якого ми привітаємо\n"
+						  + "\n"
+						  + "Також можна переслати сюди будь-яке його повідомлення :)\n"
 						  + "\n"
 						  + "Пам'ятайте! Я надішлю ваше привітання у чати, де побачу "
 						  + "цю людину, навіть якщо вас там немає.\n"
@@ -317,7 +313,7 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command del_birthday = new Command(CommandType.PRIVATE, "/delbirthday") {
+		Command del_birthday = new Command(CommandType.PRIVATE, true, "/delbirthday") {
 			@Override
 			public void execute(Message message) {
 				long fromId = message.from().id();
@@ -414,23 +410,27 @@ public class Bot extends TelegramBot {
 		String date = day + "." + month + "." + year;
 		return date;
 	}
-	private String birthdaysToText (List<Birthday> birthdays) {
+	private String myBirthdaysToText (List<Birthday> myBirthdays) {
 		String separator = "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _";
 		int number = 1;
 		String output = "";
 		String date;
-		for (Birthday birthday : birthdays) {
+		String displayCommand;
+		String removeCommand;
+		for (Birthday birthday : myBirthdays) {
 			date = zdtToString( birthday.birthdayDate() );
+			displayCommand = "/birthdaytext_" + birthday.code();
+			removeCommand = "/birthdayremove_" + birthday.code();
 			
 			output	+= separator + "\n\n"
 					
-					+ "#" + number + " [ " + birthday.contactName() + " ]\n\n"
+					+ "#" + number + " [ " + birthday.contactName() + " ]\n"
+					+ "Видалити: " + removeCommand + "\n\n"
 					+ "Ваше ім'я:\n"
 					+ birthday.authorName() + "\n\n"
 					+ "Дата:\n"
 					+ date + "\n\n"
-					+ "Текст:\n"
-					+ birthday.text() + "\n";
+					+ "Текст: " + displayCommand + "\n";
 			
 			number++;
 		}

@@ -4,6 +4,7 @@ import java.time.ZonedDateTime;
 
 public interface BirthdayInterface {
 	
+	public String code();
 	public long authorId();
 	public String authorName();
 	public long contactId();
@@ -11,6 +12,7 @@ public interface BirthdayInterface {
 	public ZonedDateTime birthdayDate();
 	public String text();
 	
+	public void setCode(String code);
 	public void setAuthorId(long authorId);
 	public void setAuthorName(String authorName);
 	public void setContactId(long contactId);

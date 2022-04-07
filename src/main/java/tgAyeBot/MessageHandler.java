@@ -1,5 +1,6 @@
 package tgAyeBot;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -57,13 +58,28 @@ public class MessageHandler {
 		groupCommands(message);
 	}
 	
-	
+	private List<String> commandWordings() {
+		List<String> wordings = new ArrayList<String>();
+		
+		for (Command command : this.Private) {
+			String wording = command.command();
+			wordings.add(wording);
+		}
+		for (Command command : this.group) {
+			String wording = command.command();
+			wordings.add(wording);
+		}
+		
+		return wordings;
+	}
 	
 	public void setBirthdaySession(Message message) {
 		
 		//array of text messages this session ignores
 		List<String> ignore = new ArrayList<String>();
+		ignore.add("/setbirthday");
 		ignore.add("/anonymous");
+		
 		
 		long fromId = message.from().id();
 		List<SetBirthdaySession> list = SessionStore.setBirthday();
@@ -89,16 +105,16 @@ public class MessageHandler {
 				
 				String respond = "";
 				if (contactExpected) {
-					boolean contactReceived = contact != null;
+					boolean contactReceived = contact != null && contact.userId() != null;
 					boolean contactChecked = false;
 					if (contactReceived) { //checks if received contact is not sent by the same person
-						contactChecked = contact.userId() != from.id();
+						contactChecked = !contact.userId().equals(from.id());
 					}
 					
-					boolean forwardReceived = forwardFrom != null;
+					boolean forwardReceived = forwardFrom != null && forwardFrom.id() != null;
 					boolean forwardChecked = false;
 					if (forwardReceived) { //checks if forward message is not from the same person
-						forwardChecked = forwardFrom.id() != from.id();
+						forwardChecked = !forwardFrom.id().equals(from.id());
 					}
 					
 					boolean contactApproved = contactReceived && contactChecked;
@@ -149,10 +165,11 @@ public class MessageHandler {
 							respond = "Самого себе вітати неможна, мене не обдуриш :D";
 						}
 						else {
-							respond = "Виникла помилка :(\n"
-									+ "\n"
+							respond = "Виникла помилка\n"
 									+ "Можливі причини:\n"
+									+ "\n"
 									+ "🔻я не можу отримати данні про цю людину через її налаштування конфіденційності\n"
+									+ "\n"
 									+ "🔻те, що ви прислали, не є контактом або пересланим від когось повідомленням\n";
 						}
 						
@@ -169,14 +186,15 @@ public class MessageHandler {
 							
 							respond = "Прекрасно! А тепер, час написати текст привітання :D\n"
 									+ "\n"
-									+ "Максимальна кількість символів: 1000";
+									+ "Максимальна кількість символів: 4000";
 						}
 						else {
-							respond = "Виникла помилка :(\n"
+							respond = "Виникла помилка\n"
+									+ "Можливі причини:\n"
 									+ "\n"
-									+ "Можливі причини:"
-									+ "🔻ви вказали дату у неправильному форматі"
-									+ "🔻ви вказали ім'я своєї бабусі замість дати";
+									+ "🔻ви вказали дату у неправильному форматі\n"
+									+ "\n"
+									+ "🔻ви вказали ім'я своєї бабусі замість дати\n";
 						}
 					}
 					else {
@@ -185,7 +203,30 @@ public class MessageHandler {
 					}
 				}
 				else if (textExpected) {
+					boolean textReceived = text != null;
 					
+					if (textReceived) {
+						final int LENGTH_LIMIT = 4000;
+						boolean successful = text.length() <= LENGTH_LIMIT;
+						if (successful) {
+							try {
+								setBirthday.setText(text);
+								boolean isAnonymous = bot.userIsAnonymous(fromId);
+								Birthday birthday = setBirthday.toBirthday(isAnonymous);
+								Birthday.addBirthday(birthday);
+								
+								SessionStore.clear(fromId);
+							} catch (IOException e) {}
+							
+							respond = "Готово, я привітаю твого друга коли настане час :)";
+						}
+						else {
+							respond = "Вибач, твоє повідомлення має більше 4000 символів :(";
+						}
+					}
+					else {
+						respond = "так неможна, можна тільки текст з привітанням :(";
+					}
 				}
 				
 				SendMessage sendMessage = new SendMessage(chatId, respond);
@@ -329,6 +370,7 @@ public class MessageHandler {
 		for (Command command : this.Private) {
 			String commandText = command.command();
 			if ( commandText.contentEquals(text) ) {
+				if (command.terminatesSessions()) SessionStore.clear(message.from().id());
 				command.execute(message);
 				break;
 			}
@@ -341,6 +383,7 @@ public class MessageHandler {
 		for (Command command : this.group) {
 			String commandText = command.command() + this.bot.username();
 			if ( commandText.contentEquals(text) ) {
+				if (command.terminatesSessions()) SessionStore.clear(message.from().id());
 				command.execute(message);
 				break;
 			}
