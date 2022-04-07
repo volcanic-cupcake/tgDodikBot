@@ -7,12 +7,10 @@ import java.util.List;
 public abstract class SessionStore {
 	
 	private static List<SetBirthdaySession> setBirthday = new ArrayList<SetBirthdaySession>();
-	private static List<DelBirthdaySession> delBirthday = new ArrayList<DelBirthdaySession>();
 	// also add new stuff to clear(long) and clear() methods!
 	
 	public static void clear() {
 		setBirthday.clear();
-		delBirthday.clear();
 		//add new stuff here
 	}
 	public static void clear(long userId) {
@@ -23,19 +21,11 @@ public abstract class SessionStore {
 		}
 		//example ends
 		
-		for (DelBirthdaySession session : delBirthday) {
-			if (session.authorId() == userId) delBirthday.remove(session);
-			break;
-		}
-		
 		//add new stuff here as in the example
 		
 	}
 	
 	public static List<SetBirthdaySession> setBirthday() {
 		return setBirthday;
-	}
-	public static List<DelBirthdaySession> delBirthday() {
-		return delBirthday;
 	}
 }

@@ -124,25 +124,6 @@ public class Bot extends TelegramBot {
 		return isEmpty;
 	}
 	
-	public void delBirthdays(long fromId, long chatId) {
-		ZonedDateTime now = uaDateTimeNow();
-		List<DelBirthdaySession> sessions = SessionStore.delBirthday();
-		DelBirthdaySession newSession = new DelBirthdaySession(fromId, now);
-		sessions.add(newSession);
-		
-		boolean birthdaysEmpty = true;
-		try {
-			birthdaysEmpty = sendMyBirthdays(fromId, chatId);
-		} catch (FileNotFoundException e) {}
-		
-		if (!birthdaysEmpty) {
-			String text =
-					  "Відправ мені номер привітання, яке ти хочеш видалити.\n"
-					+ "Наприклад: 1";
-			SendMessage send = new SendMessage(chatId, text);
-			this.execute(send);
-		}
-	}
 	public Command[] commands() {
 		Bot bot = this;
 		//List<Command> commands = new ArrayList<Command>();
@@ -317,19 +298,9 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command del_birthday = new Command(CommandType.PRIVATE, true, "/delbirthday") {
-			@Override
-			public void execute(Message message) {
-				long fromId = message.from().id();
-				long chatId = message.chat().id();
-				
-				delBirthdays(fromId, chatId);
-			}
-		};
-		
 		Command[] commands = {
 				help, creator, youtube, russian_warship, start, cancel, anonymous,
-				set_birthday, del_birthday, my_birthdays, privacy
+				set_birthday, my_birthdays, privacy
 		};
 		return commands;
 	}
