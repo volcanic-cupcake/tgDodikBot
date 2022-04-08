@@ -29,7 +29,11 @@ public class Main {
 		    	
 		    	Message message = update.message();
 		    	
-		    	if (message != null) {		
+		    	if (message != null) {	
+		    		
+		    		String longText = "";
+		    		bot.secureTextSend(message.chat().id(), longText);		    		
+		    		
 		    		Type type = message.chat().type();
 		    		String text = message.text();
 		    		
@@ -39,7 +43,7 @@ public class Main {
 		    			if (text != null) handler.Private(message);
 		    			break;
 		    		case group:
-		    		case supergroup:
+		    		case supergroup:		    			
 		    			try { handler.updateChatData(bot.chats, message); }
 			    		catch (IOException e) {}
 		    			

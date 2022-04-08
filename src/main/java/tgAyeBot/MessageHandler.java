@@ -208,7 +208,7 @@ public class MessageHandler {
 							
 							respond = "Прекрасно! А тепер, час написати текст привітання :D\n"
 									+ "\n"
-									+ "Максимальна кількість символів: 4000";
+									+ "Максимальна кількість символів: 3000";
 						}
 						else {
 							respond = "Виникла помилка\n"
@@ -228,7 +228,7 @@ public class MessageHandler {
 					boolean textReceived = text != null;
 					
 					if (textReceived) {
-						final int LENGTH_LIMIT = 4000;
+						final int LENGTH_LIMIT = 3000;
 						boolean successful = text.length() <= LENGTH_LIMIT;
 						if (successful) {
 							try {
@@ -243,7 +243,7 @@ public class MessageHandler {
 							respond = "Готово, я привітаю твого друга коли настане час :)";
 						}
 						else {
-							respond = "Вибач, твоє повідомлення має більше 4000 символів :(";
+							respond = "Вибач, твоє повідомлення має більше 3000 символів :(";
 						}
 					}
 					else {
@@ -330,7 +330,8 @@ public class MessageHandler {
 		for (Birthday birthday : birthdays) {
 			matches = birthday.code().contentEquals(code);
 			if (matches) {
-				response = birthday.text();
+				response += "🔸" + birthday.authorName() + "🔸" + "\n\n";
+				response += birthday.text();
 				break;
 			}
 		}

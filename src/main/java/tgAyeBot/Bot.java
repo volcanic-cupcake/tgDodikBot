@@ -332,22 +332,30 @@ public class Bot extends TelegramBot {
 			this.execute(send);
 		}
 		else { //sending multiple messages
-			int num = text.length() / MAX_LENGTH;
-			int leftNum = text.length() % MAX_LENGTH;
-			
-			String temp;
-			for (int i = 0; i < num; i++) {
-				temp = text.substring(0, MAX_LENGTH);
-				text = text.substring(MAX_LENGTH, text.length());
+			Bot bot = this;
+			new Thread(() -> {
+				String localText = text;
 				
-				SendMessage send = new SendMessage(chatId, temp);
-				this.execute(send);
-			}
-			
-			if (leftNum != 0) {
-				SendMessage send = new SendMessage(chatId, text);
-				this.execute(send);
-			}
+				int num = localText.length() / MAX_LENGTH;
+				int leftNum = localText.length() % MAX_LENGTH;
+				
+				String temp;
+				for (int i = 0; i < num; i++) {
+					temp = localText.substring(0, MAX_LENGTH);
+					localText = localText.substring(MAX_LENGTH, localText.length());
+					
+					SendMessage send = new SendMessage(chatId, temp);
+					this.execute(send);
+					
+					try {	Thread.sleep(10000);	}
+					catch (InterruptedException e) {}
+				}
+				
+				if (leftNum != 0) {
+					SendMessage send = new SendMessage(chatId, localText);
+					bot.execute(send);
+				}
+			}).start();
 		}
 	}
 	
@@ -444,6 +452,13 @@ public class Bot extends TelegramBot {
 			
 			GetUpdates confirmUnhandled = new GetUpdates().offset(highestUpdateId + 1).timeout(0);
 			this.execute(confirmUnhandled);
+		}
+	}
+	
+	public void congratulateToday() throws IOException {
+		List<Birthday> today = Birthday.todayBirthdays();
+		if (today != null) {
+			List<BotChat> chats = BotChat.readChats();
 		}
 	}
 }

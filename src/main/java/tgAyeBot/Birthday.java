@@ -232,32 +232,45 @@ public class Birthday implements BirthdayInterface {
 		Birthday.writeBirthdays(birthdays);
 	}
 	
-	public static List<Birthday> todayBirthdays() throws FileNotFoundException {
+	public static List<Birthday> todayBirthdays() throws IOException {
 		List<Birthday> birthdays = readBirthdays();
 		List<Birthday> todayBirthdays = new ArrayList<Birthday>();
 		ZonedDateTime now = Bot.uaDateTimeNow();
 		ZonedDateTime birthdayDate;
+		boolean isDisplayed;
+		boolean change = false; //if there's a need to save down birthdays
 		for (Birthday birthday : birthdays) {
 			birthdayDate = birthday.birthdayDate();
+			isDisplayed = birthday.isDisplayed();
 			boolean isToday =
 					now.getYear() == birthdayDate.getYear() &&
 					now.getDayOfYear() == birthdayDate.getDayOfYear();
-			if (isToday) todayBirthdays.add(birthday);
+			if (isToday && !isDisplayed) {
+				change = true;
+				birthday.setIsDisplayed(true);
+				todayBirthdays.add(birthday);
+			}
 		}
+		
+		if (change) Birthday.writeBirthdays(birthdays);
 		
 		if (todayBirthdays.isEmpty()) return null;
 		else return todayBirthdays;
 	}
-	public static List<Birthday> expiredBirthdays() throws FileNotFoundException {
+	public static List<Birthday> expiredBirthdays() throws IOException {
 		List<Birthday> birthdays = readBirthdays();
 		List<Birthday> expiredBirthdays = new ArrayList<Birthday>();
 		ZonedDateTime now = Bot.uaDateTimeNow();
 		long nowEpoch = now.toEpochSecond();
 		long birthdayEpoch;
+		boolean isDisplayed;
 		ZonedDateTime birthdayDate;
+		boolean change = false; //if there's a need to save birthdays
 		for (Birthday birthday : birthdays) {
 			birthdayDate = birthday.birthdayDate();
 			birthdayEpoch = birthdayDate.toEpochSecond();
+			isDisplayed = birthday.isDisplayed();
+			
 			boolean hasPassed = nowEpoch >= birthdayEpoch;
 			boolean isThisYear =
 					now.getYear() == birthdayDate.getYear() &&
@@ -265,8 +278,14 @@ public class Birthday implements BirthdayInterface {
 			boolean isLaterYear = now.getYear() > birthdayDate.getYear();
 			
 			boolean expired = hasPassed && (isThisYear || isLaterYear);
-			if (expired) expiredBirthdays.add(birthday);
+			if (expired && !isDisplayed) {
+				change = true;
+				birthday.setIsDisplayed(true);
+				expiredBirthdays.add(birthday);
+			}
 		}
+		
+		if (change) Birthday.writeBirthdays(birthdays);
 		
 		if (expiredBirthdays.isEmpty()) return null;
 		else return expiredBirthdays;
