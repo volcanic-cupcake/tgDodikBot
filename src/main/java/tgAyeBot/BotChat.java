@@ -68,4 +68,9 @@ public class BotChat {
 		
 		TextFile.writeLines(Resource.chats.path, lines, false);
 	}
+	
+	public boolean contains(long userId) {
+		if (members().contains(userId)) return true;
+		else return false;
+	}
 }

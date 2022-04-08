@@ -459,6 +459,13 @@ public class Bot extends TelegramBot {
 		List<Birthday> today = Birthday.todayBirthdays();
 		if (today != null) {
 			List<BotChat> chats = BotChat.readChats();
+			
+			for (BotChat chat : chats) {
+				String a = "";
+				for (Birthday birthday : today) {
+					
+				}
+			}
 		}
 	}
 }

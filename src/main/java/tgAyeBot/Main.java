@@ -29,11 +29,7 @@ public class Main {
 		    	
 		    	Message message = update.message();
 		    	
-		    	if (message != null) {	
-		    		
-		    		String longText = "";
-		    		bot.secureTextSend(message.chat().id(), longText);		    		
-		    		
+		    	if (message != null) {			    		
 		    		Type type = message.chat().type();
 		    		String text = message.text();
 		    		
