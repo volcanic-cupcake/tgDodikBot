@@ -186,7 +186,7 @@ public class Bot extends TelegramBot {
 			public void execute(Message message) {
 				long chatId = message.chat().id();
 				int messageId = message.messageId();
-				String text = "...иди нахуй!";
+				String text = "Русский военный корабль, иди нахуй!";
 				SendMessage send = new SendMessage(chatId, text)
 						.replyToMessageId(messageId);
 				bot.execute(send);
@@ -359,17 +359,87 @@ public class Bot extends TelegramBot {
 		}
 	}
 	
+	private void secureCongratsSend(List<Congrat> congrats) {
+		Bot bot = this;
+		new Thread(() -> {
+			final int MAX_LENGTH = 4096;
+			final int SLEEP_TIME = 10000;
+			for (Congrat congrat : congrats) {
+				
+				long chatId = congrat.chatId();
+				String text = congrat.text();
+				
+				if (text.length() <= MAX_LENGTH) {
+					SendMessage send = new SendMessage(chatId, text);
+					bot.execute(send);
+					try {	Thread.sleep(SLEEP_TIME);	}
+					catch (InterruptedException e) {}
+				}
+				else {
+					String[] lines = text.split("\n");
+					String temp = "";
+					for (int i = 0; i < lines.length; i++) {
+						String line = lines[i];
+						temp += line + "\n";
+						
+						boolean lastIteration = i == lines.length - 1;
+						boolean isLongEnough = temp.length() > 3700;
+						
+						if (!lastIteration && isLongEnough) {
+							SendMessage send = new SendMessage(chatId, temp);
+							bot.execute(send);
+							temp = "";
+						}
+						else if (lastIteration) {
+							SendMessage send = new SendMessage(chatId, temp);
+							bot.execute(send);
+						}
+						
+						try {	Thread.sleep(SLEEP_TIME);	}
+						catch (InterruptedException e) {}
+					}
+				}
+			}
+		}).start();
+	}
+	
 	public boolean userIsAnonymous(long userId) throws FileNotFoundException {
 		List<Long> anonymousList = Bot.readAnonymous();
 		boolean anonymous = anonymousList.contains(userId);
 		return anonymous;
 	}
 	
-	public ChatMember botGetChatMember(long chatId, long userId) {
+	private boolean chatMemberExists(long chatId, long userId) {
 		GetChatMember request = new GetChatMember(chatId, userId);
     	GetChatMemberResponse getChatMemberResponse = this.execute(request);
-    	ChatMember chatMember = getChatMemberResponse.chatMember();
-		return chatMember;
+    	ChatMember member = getChatMemberResponse.chatMember();
+		
+		boolean isNull = member == null;
+		boolean isLeft = false;
+		boolean isKicked = false;
+		
+		if (!isNull) {
+			switch(member.status()) {
+			case left:
+				isLeft = true;
+				break;
+			case kicked:
+				isKicked = true;
+				break;
+			default:
+				break;
+			}
+		}
+		
+		boolean exists = !isNull && !(isLeft || isKicked);
+		return exists;
+	}
+	
+	private User getChatUser(long chatId, long userId) {
+		GetChatMember request = new GetChatMember(chatId, userId);
+    	GetChatMemberResponse getChatMemberResponse = this.execute(request);
+    	ChatMember member = getChatMemberResponse.chatMember();
+    	return member.user();
 	}
 	
 	public User botGetMe() {
@@ -378,6 +448,8 @@ public class Bot extends TelegramBot {
 		User me = getMeResponse.user();
 		return me;
 	}
+	
+	
 	public String username() {
 		return this.USERNAME;
 	}
@@ -420,8 +492,7 @@ public class Bot extends TelegramBot {
 		}
 		output += separator;
 		
-		if (output.contentEquals("")) return null;
-		else return output;
+		return output;
 	}
 	
 	public void confirmAllUpdates(MessageHandler handler) {
@@ -458,14 +529,62 @@ public class Bot extends TelegramBot {
 	public void congratulateToday() throws IOException {
 		List<Birthday> today = Birthday.todayBirthdays();
 		if (today != null) {
-			List<BotChat> chats = BotChat.readChats();
+			List<BotChat> chats = this.chats;
 			
+			List<Congrat> congrats = new ArrayList<Congrat>();
+			//for every chat we have
 			for (BotChat chat : chats) {
-				String a = "";
-				for (Birthday birthday : today) {
+				long chatId = chat.id();
+				//for every chat member we have
+				for (long memberId : chat.members()) {
+					boolean memberExists = chatMemberExists(chatId, memberId);
+					if (!memberExists) continue;
 					
+					
+					String greetings = "";
+					String separator = "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _";
+					//for every birthday greeting we have today
+					for (Birthday birthday : today) {
+						long contactId = birthday.contactId();
+						if (memberId == contactId) {
+							greetings +=
+									  separator + "\n\n"
+									+ "🔸" + birthday.authorName() + "🔸" + "\n\n"
+									+ "Подивитися: /birthdaytext_" + birthday.code() + "\n";
+						}
+					}
+					
+					if (!greetings.contentEquals("")) {
+						User user = getChatUser(chatId, memberId);
+						String firstName = user.firstName();
+						String lastName = user.lastName();
+						String fullName;
+						if (lastName == null) fullName = firstName;
+						else fullName = firstName + " " + lastName;
+						
+						String intro = congratulateTodayIntro(firstName, fullName);
+						String text = intro + greetings + separator;
+						
+						Congrat congrat = new Congrat(chatId, text);
+						congrats.add(congrat);
+					}
 				}
 			}
+			
+			if (!congrats.isEmpty()) secureCongratsSend(congrats);
 		}
+	}
+	
+	private String congratulateTodayIntro(String firstName, String fullName) {
+		String text =
+				  "Хобана, мені тут передали, що в 🎉" + fullName + "🎉 сьогодні День Народження!\n"
+				+ "\n"
+				+ firstName + ", тобі тут дехто залишив теплі привітання\n"
+				+ "я думаю, твої друзі тебе справді люблять :)\n"
+				+ "\n"
+				+ "хоч я і просто бот, але в мене також є душа, тому я приєднуюся до усіх "
+				+ "привітань та бажаю тобі весело провести цей день :D\n";
+		
+		return text;
 	}
 }

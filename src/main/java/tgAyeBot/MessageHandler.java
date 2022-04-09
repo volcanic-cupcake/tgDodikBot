@@ -73,21 +73,6 @@ public class MessageHandler {
 		else groupCommands(message);
 	}
 	
-	private List<String> commandWordings() {
-		List<String> wordings = new ArrayList<String>();
-		
-		for (Command command : this.Private) {
-			String wording = command.command();
-			wordings.add(wording);
-		}
-		for (Command command : this.group) {
-			String wording = command.command();
-			wordings.add(wording);
-		}
-		
-		return wordings;
-	}
-	
 	public void setBirthdaySession(Message message) {
 		
 		//array of text messages this session ignores
