@@ -3,6 +3,8 @@ package tgAyeBot;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.pengrad.telegrambot.*;
 import com.pengrad.telegrambot.model.Chat.Type;
@@ -19,8 +21,16 @@ public class Main {
 		Bot bot = new Bot(token);
 		bot.chats = BotChat.readChats();
 		MessageHandler handler = new MessageHandler(bot);
-		
 		bot.confirmAllUpdates(handler);
+		
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask() {
+		    @Override
+		    public void run() {
+		    	try {	bot.congratulateToday();	}
+		    	catch (IOException e) {}
+		    }
+		}, 0, 86400000);
 		// Listening for updates
 		bot.setUpdatesListener(updates -> {
 			if (updates.size() > 10) return UpdatesListener.CONFIRMED_UPDATES_ALL;

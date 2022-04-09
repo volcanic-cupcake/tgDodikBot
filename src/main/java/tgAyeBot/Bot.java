@@ -88,21 +88,22 @@ public class Bot extends TelegramBot {
 				+ "/russian_warship - спробуй :D\n"
 				+ "/privacy - які данні я збираю\n"
 				+ "/creator - автор бота\n"
+				+ "/info - інформація про проект"
 				+ "\n"
 				
 				+ "🔶ДИРЕКТ ЗІ МНОЮ🔶\n"
 				+ "/cancel - відмінити попередню операцію\n"
 				+ "/anonymous - анонімний режим\n"
 				+ "/setbirthday - зберегти привітання на ДН\n"
-				+ "/mybirthdays - управління привітаннями на ДН\n"
-				+ "\n"
+				+ "/mybirthdays - управління привітаннями на ДН\n";
+				/*+ "\n"
 				
 				+ "🔶ГРУПОВІ ЧАТИ🔶\n"
-				+ "/pidoras - pidoras\n";
+				+ "/pidoras - pidoras\n";*/
 		SendMessage send = new SendMessage(chatId, text);
 		return send;
 	}
-	public boolean sendMyBirthdays(long fromId, long chatId) throws FileNotFoundException {
+	public void sendMyBirthdays(long fromId, long chatId) throws FileNotFoundException {
 		List<Birthday> allBirthdays = Birthday.readBirthdays();
 		List<Birthday> myBirthdays = new ArrayList<Birthday>();
 		for (Birthday birthday : allBirthdays) {
@@ -111,18 +112,19 @@ public class Bot extends TelegramBot {
 			if (authorMatch && !isDisplayed) myBirthdays.add(birthday);
 		}
 		
-		boolean isEmpty;
 		String output;
 		if (myBirthdays.isEmpty()) {
-			isEmpty = true;
 			output = "Пусто, прямо як у москаляки в голові!";
 		}
 		else {
-			isEmpty = false;
 			output = myBirthdaysToText(myBirthdays);
 		}
-		secureTextSend(chatId, output);
-		return isEmpty;
+		
+		List<Congrat> list = new ArrayList<Congrat>();
+		Congrat congrats = new Congrat(chatId, output);
+		list.add(congrats);
+		
+		secureCongratsSend(list);
 	}
 	
 	public Command[] commands() {
@@ -168,6 +170,16 @@ public class Bot extends TelegramBot {
 				String firstName = "Єгор";
 				SendContact contact = new SendContact(chatId, phoneNumber, firstName);
 				bot.execute(contact);
+			}
+		};
+		
+		Command info = new Command(CommandType.PRIVATE_AND_GROUP, true, "/info") {
+			@Override
+			public void execute(Message message) {
+				long chatId = message.chat().id();
+				String text = "Мене звати Єгор, мені 16 років і я автор цього бота!";
+				SendMessage send = new SendMessage(chatId, text);
+				bot.execute(send);
 			}
 		};
 		
@@ -300,7 +312,7 @@ public class Bot extends TelegramBot {
 		};
 		
 		Command[] commands = {
-				help, creator, youtube, russian_warship, start, cancel, anonymous,
+				help, creator, info, youtube, russian_warship, start, cancel, anonymous,
 				set_birthday, my_birthdays, privacy
 		};
 		return commands;
@@ -389,14 +401,17 @@ public class Bot extends TelegramBot {
 							SendMessage send = new SendMessage(chatId, temp);
 							bot.execute(send);
 							temp = "";
+							
+							try {	Thread.sleep(SLEEP_TIME);	}
+							catch (InterruptedException e) {}
 						}
 						else if (lastIteration) {
 							SendMessage send = new SendMessage(chatId, temp);
 							bot.execute(send);
-						}
-						
-						try {	Thread.sleep(SLEEP_TIME);	}
-						catch (InterruptedException e) {}
+							
+							try {	Thread.sleep(SLEEP_TIME);	}
+							catch (InterruptedException e) {}
+						}		
 					}
 				}
 			}
