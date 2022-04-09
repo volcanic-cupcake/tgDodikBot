@@ -80,26 +80,42 @@ public class Bot extends TelegramBot {
 		return zdt;
 	}
 	
+	public static long congratulateDelay(int hour) {
+		ZonedDateTime now = uaDateTimeNow();
+		long nowEpoch = now.toEpochSecond();
+		int i = 0;
+		while (now.plusHours(i).getHour() != hour) {
+			i++;
+		}
+		
+		long targetEpoch = now.plusHours(i).toEpochSecond();
+		long difference = targetEpoch - nowEpoch;
+		long toMilli = difference / 1000;
+		
+		return toMilli;
+	}
+	
 	public SendMessage helpMessage(long chatId) {
 		String text =
 				"🔶УСІ ЧАТИ🔶\n"
 				+ "/help - чит на легендарки бравл старс\n"
 				+ "/youtube - плейлист з поясненням на Ютубі\n"
-				+ "/russian_warship - спробуй :D\n"
+				+ "/russian_warship - класика\n"
 				+ "/privacy - які данні я збираю\n"
+				+ "/info - інформація про проект\n"
 				+ "/creator - автор бота\n"
-				+ "/info - інформація про проект"
+				+ "/github - репозиторій на GitHub\n"
 				+ "\n"
 				
 				+ "🔶ДИРЕКТ ЗІ МНОЮ🔶\n"
 				+ "/cancel - відмінити попередню операцію\n"
 				+ "/anonymous - анонімний режим\n"
-				+ "/setbirthday - зберегти привітання на ДН\n"
-				+ "/mybirthdays - управління привітаннями на ДН\n";
-				/*+ "\n"
+				+ "/setbirthday - зберегти привітання\n"
+				+ "/mybirthdays - управління привітаннями\n"
+				+ "\n"
 				
 				+ "🔶ГРУПОВІ ЧАТИ🔶\n"
-				+ "/pidoras - pidoras\n";*/
+				+ "/agree - pidoras\n";
 		SendMessage send = new SendMessage(chatId, text);
 		return send;
 	}
@@ -177,8 +193,37 @@ public class Bot extends TelegramBot {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
-				String text = "Мене звати Єгор, мені 16 років і я автор цього бота!";
+				String separator = "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _";
+				String text =
+						  "Мене звати Єгор, мені 16 років і я автор цього бота :D"
+						+ "\n\n"
+						+ "🔸цей проект має лише розважальний характер"
+						+ "\n\n"
+						+ "🔸мова програмування: Java"
+						+ "\n\n"
+						+ "🔸проект є повністю open-source"
+						+ "\n\n"
+						+ "🔸ви можете вільно використовувати мою роботу"
+						+ "\n\n"
+						+ "🔸отримати початковий код можна тут /github"
+						+ "\n\n"
+						+ "🔸зв'язатися зі мною можна тут /creator"
+						+ "\n\n"
+						+ "🔸путін хуйло"
+						+ "\n\n"
+						+ "Дякую за увагу!";
 				SendMessage send = new SendMessage(chatId, text);
+				bot.execute(send);
+			}
+		};
+		
+		Command github = new Command(CommandType.PRIVATE_AND_GROUP, true, "/github") {
+			@Override
+			public void execute (Message message) {
+				long chatId = message.chat().id();
+				String link = "https://github.com/volcanic-cupcake/tgDodikBot";
+				SendMessage send = new SendMessage(chatId, link)
+						.disableWebPagePreview(true);
 				bot.execute(send);
 			}
 		};
@@ -312,7 +357,7 @@ public class Bot extends TelegramBot {
 		};
 		
 		Command[] commands = {
-				help, creator, info, youtube, russian_warship, start, cancel, anonymous,
+				help, creator, info, github, youtube, russian_warship, start, cancel, anonymous,
 				set_birthday, my_birthdays, privacy
 		};
 		return commands;

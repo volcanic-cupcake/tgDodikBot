@@ -24,13 +24,15 @@ public class Main {
 		bot.confirmAllUpdates(handler);
 		
 		Timer timer = new Timer();
+		long delay = Bot.congratulateDelay(10);
+		long period = 24 * 60 * 60 * 1000;
 		timer.schedule(new TimerTask() {
 		    @Override
 		    public void run() {
 		    	try {	bot.congratulateToday();	}
 		    	catch (IOException e) {}
 		    }
-		}, 0, 86400000);
+		}, delay, period);
 		// Listening for updates
 		bot.setUpdatesListener(updates -> {
 			if (updates.size() > 10) return UpdatesListener.CONFIRMED_UPDATES_ALL;
