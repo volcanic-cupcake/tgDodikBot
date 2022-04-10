@@ -213,10 +213,9 @@ public class Birthday implements BirthdayInterface {
 			lines.add(birthdayDateLine);
 			lines.add(textLine);
 			lines.add(isDisplayedLine);
-			
-			String filePath = Resource.birthdays.path;
-			TextFile.writeLines(filePath, lines, false);
 		}
+		String filePath = Resource.birthdays.path;
+		TextFile.writeLines(filePath, lines, false);
 	}
 	
 	public static void addBirthday(Birthday birthday) throws IOException {

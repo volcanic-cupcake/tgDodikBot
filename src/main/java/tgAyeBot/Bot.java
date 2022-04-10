@@ -12,6 +12,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Chat.Type;
@@ -36,6 +37,7 @@ public class Bot extends TelegramBot {
 	
 	private final String USERNAME = "@" + botGetMe().username();
 	List<BotChat> chats = new ArrayList<BotChat>();
+	List<Long> banned = readBanned();
 	
 	public Bot(String token) {
 		super(token);
@@ -90,7 +92,7 @@ public class Bot extends TelegramBot {
 		
 		long targetEpoch = now.plusHours(i).toEpochSecond();
 		long difference = targetEpoch - nowEpoch;
-		long toMilli = difference / 1000;
+		long toMilli = difference * 1000;
 		
 		return toMilli;
 	}
@@ -99,12 +101,14 @@ public class Bot extends TelegramBot {
 		String text =
 				"🔶УСІ ЧАТИ🔶\n"
 				+ "/help - чит на легендарки бравл старс\n"
+				+ "/joke - рандомний анекдот від користувача\n"
 				+ "/youtube - плейлист з поясненням на Ютубі\n"
-				+ "/russian_warship - класика\n"
 				+ "/privacy - які данні я збираю\n"
 				+ "/info - інформація про проект\n"
 				+ "/creator - автор бота\n"
+				+ "/report - повідомити про порушення\n"
 				+ "/github - репозиторій на GitHub\n"
+				+ "/russian_warship - класика\n"
 				+ "\n"
 				
 				+ "🔶ДИРЕКТ ЗІ МНОЮ🔶\n"
@@ -112,10 +116,16 @@ public class Bot extends TelegramBot {
 				+ "/anonymous - анонімний режим\n"
 				+ "/setbirthday - зберегти привітання\n"
 				+ "/mybirthdays - управління привітаннями\n"
+				+ "/setjoke - додати анекдот до спільного сховища\n"
 				+ "\n"
 				
 				+ "🔶ГРУПОВІ ЧАТИ🔶\n"
-				+ "/agree - pidoras\n";
+				+ "/insult - образити рандомну людину\n"
+				+ "\n"
+				
+				+ "❗️Зверніть увагу❗️\n"
+				+ "якщо ви будете зловживати деякими функціями, вам буде назавжди заборонено "
+				+ "користуватися ботом\n";
 		SendMessage send = new SendMessage(chatId, text);
 		return send;
 	}
@@ -152,6 +162,28 @@ public class Bot extends TelegramBot {
 			public void execute(Message message) {
 				long chatId = message.chat().id();
 				SendMessage send = helpMessage(chatId);
+				bot.execute(send);
+			}
+		};
+		
+		Command joke = new Command(CommandType.PRIVATE_AND_GROUP, true, "/joke") {
+			@Override
+			public void execute(Message message) {
+				long chatId = message.chat().id();
+				List<Joke> jokes = null;
+				try {
+					jokes = Joke.readJokes();
+				} catch (FileNotFoundException e) {}
+				
+				Random random = new Random();
+				int rndIndex = random.nextInt( jokes.size() );
+				Joke joke = jokes.get(rndIndex);
+				
+				String messageText =
+						  "🔸" + joke.authorName() + "🔸\n"
+						+ "\n"
+						+ joke.text();
+				SendMessage send = new SendMessage(chatId, messageText);
 				bot.execute(send);
 			}
 		};
@@ -193,25 +225,36 @@ public class Bot extends TelegramBot {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
-				String separator = "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _";
 				String text =
 						  "Мене звати Єгор, мені 16 років і я автор цього бота :D"
 						+ "\n\n"
 						+ "🔸цей проект має лише розважальний характер"
 						+ "\n\n"
-						+ "🔸мова програмування: Java"
-						+ "\n\n"
 						+ "🔸проект є повністю open-source"
+						+ "\n\n"
+						+ "🔸мова програмування: Java"
 						+ "\n\n"
 						+ "🔸ви можете вільно використовувати мою роботу"
 						+ "\n\n"
 						+ "🔸отримати початковий код можна тут /github"
 						+ "\n\n"
-						+ "🔸зв'язатися зі мною можна тут /creator"
+						+ "🔸прошу повідомляти мені про помилки /creator"
 						+ "\n\n"
 						+ "🔸путін хуйло"
 						+ "\n\n"
 						+ "Дякую за увагу!";
+				SendMessage send = new SendMessage(chatId, text);
+				bot.execute(send);
+			}
+		};
+		
+		Command report = new Command(CommandType.PRIVATE_AND_GROUP, true, "/report") {
+			@Override
+			public void execute (Message message) {
+				long chatId = message.chat().id();
+				String text =
+						  "Прохання про усі проблеми повідомляти мені у телеграм\n"
+						+ "/creator\n";
 				SendMessage send = new SendMessage(chatId, text);
 				bot.execute(send);
 			}
@@ -356,9 +399,85 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
+		Command set_joke = new Command(CommandType.PRIVATE, true, "/setjoke") {
+			@Override
+			public void execute(Message message) {
+				User from = message.from();
+				long fromId = from.id();
+				long chatId = message.chat().id();
+				
+				String fullName = getUserFullName(from);
+				ZonedDateTime now = uaDateTimeNow();
+				
+				List<SetJokeSession> jokeSessions = SessionStore.setJoke();
+				
+				SetJokeSession newSession = new SetJokeSession(now, fromId, fullName);
+				jokeSessions.add(newSession);
+				
+				String text =
+					 	"Будь ласка, надішліть мені будь-який анекдот :D\n"
+					  + "Максимальна кількість символів: 3700\n"
+					  + "\n"
+					  + "Пам'ятайте, усім відобразиться ваше ім'я, але ви можете умімкнути "
+					  + "анонімний режим командою /anonymous\n";
+				SendMessage send = new SendMessage(chatId, text);
+				bot.execute(send);
+			}
+		};
+		
+		Command insult = new Command(CommandType.GROUP, true, "/insult") {
+			@Override
+			public void execute (Message message) {
+				long chatId = message.chat().id();
+				User user = randomChatMember(chatId).user();
+				String fullName = getUserFullName(user);
+				
+				String offend1 = "ти випадково не граєш у Геншин?";
+				String offend2 =
+						    "щоб опуститися до твого рівня, "
+						    + "мені потрібно провалитися крізь землю";
+				String offend3 = "бачиш плінтус? Ось, це якраз твій рівень";
+				String offend4 = "чудово пахнеш\n\nНаїбав. Ваняєш, як свинюка у багнюці!";
+				String offend5 = "нехай твій батько надалі буде обережний. Потрібно берегтися, "
+						+ "щоб на світ не з’являлися такі виродки, як ти";
+				String offend6 = "своєю красою ти би явно світ не врятував";
+				String offend7 = "ти погано себе почуваєш або виглядаєш так завжди?";
+				String offend8 = "природа вирішила над тобою особливо не морочитися";
+				String offend9 = "я б тебе образив, але думаю, тебе дзеркало кожен день ображає";
+				String offend10 = "сподіваюся, ти не завжди такий дурний, а лише сьогодні";
+				String offend11 = "тобою випадково в дитинстві Бабая не лякали?";
+				String offend12 = "якби у тупості були крила, ти би пурхав, як метелик";
+				String offend13 = "в вас з російським кораблем багато спільного. Ви обидва "
+						+ "йдете нахуй.";
+				String offend14 = "я навіть жарт вигадувати не буду, просто йди нахуй";
+				String offend15 = "якщо б я не був ботом, начистив би тобі морду";
+				String offend16 = "я спочатку рахував скільки разів тебе роняли у дитинстві, "
+						+ "але на 100-му разі збився";
+				String offend17 = "йди на три хуя, ти пизда нетрахана.";
+				String offend18 = "був би ти негром, я б тебе відразу продав";
+				String offend19 = "від тебе лайном ваняє";
+				String offend20 = "ти мене бісиш, йди втопися";
+				
+				String offends[] = {
+						offend1, offend2, offend3, offend4, offend5, offend6,
+						offend7, offend8, offend9, offend10, offend11, offend12,
+						offend13, offend14, offend15, offend16, offend17, offend18,
+						offend19, offend20
+				};
+				
+				Random random = new Random();
+				int rndIndex = random.nextInt(offends.length);
+				
+				String text = fullName + ", " + offends[rndIndex];
+				SendMessage send = new SendMessage(chatId, text);
+				bot.execute(send);
+			}
+		};
+		
 		Command[] commands = {
-				help, creator, info, github, youtube, russian_warship, start, cancel, anonymous,
-				set_birthday, my_birthdays, privacy
+				help, creator, info, report, github, youtube, russian_warship, start,
+				cancel, anonymous,
+				set_birthday, my_birthdays, set_joke, joke, privacy, insult
 		};
 		return commands;
 	}
@@ -371,6 +490,18 @@ public class Bot extends TelegramBot {
 		}
 		return ids;
 	}
+	public static List<Long> readBanned() {
+		List<String> lines = null;
+		try {	lines = TextFile.readLines(Resource.banned.path);	}
+		catch (FileNotFoundException e) {}
+		
+		List<Long> ids = new ArrayList<Long>();
+		for (String line : lines) {
+			ids.add( Long.parseLong(line) );
+		}
+		return ids;
+	}
+	
 	public static void writeAnonymous(List<Long> ids) throws IOException {
 		List<String> lines = new ArrayList<String>();
 		String line;
@@ -469,6 +600,27 @@ public class Bot extends TelegramBot {
 		return anonymous;
 	}
 	
+	private boolean chatMemberExists(ChatMember member) {
+		boolean isNull = member == null;
+		boolean isLeft = false;
+		boolean isKicked = false;
+		
+		if (!isNull) {
+			switch(member.status()) {
+			case left:
+				isLeft = true;
+				break;
+			case kicked:
+				isKicked = true;
+				break;
+			default:
+				break;
+			}
+		}
+		
+		boolean exists = !isNull && !(isLeft || isKicked);
+		return exists;
+	}
 	private boolean chatMemberExists(long chatId, long userId) {
 		GetChatMember request = new GetChatMember(chatId, userId);
     	GetChatMemberResponse getChatMemberResponse = this.execute(request);
@@ -499,9 +651,47 @@ public class Bot extends TelegramBot {
 		GetChatMember request = new GetChatMember(chatId, userId);
     	GetChatMemberResponse getChatMemberResponse = this.execute(request);
     	ChatMember member = getChatMemberResponse.chatMember();
-    	return member.user();
+    	
+    	if (member != null) return member.user();
+    	else return null;
 	}
 	
+	private String getUserFullName(User user) {
+		String fullName = "";
+		String firstName = user.firstName();
+		String lastName = user.lastName();
+		if (lastName == null) fullName += firstName;
+		else fullName += firstName + " " + lastName;
+		
+		return fullName;
+	}
+	
+	private ChatMember randomChatMember(long chatId) {
+		ChatMember member = null;
+		for (BotChat chat : this.chats) {
+			if (chat.id() == chatId) {
+				List<Long> chatMembers = chat.members();
+				member = pickRandomChatMember(chatId, chatMembers);
+				break;
+			}
+		}
+		
+		return member;
+	}
+	private ChatMember pickRandomChatMember(long chatId, List<Long> chatMembers) {
+		Random random = new Random();
+		int rndIndex = random.nextInt(chatMembers.size());
+		long rndMemberId = chatMembers.get(rndIndex);
+		
+		GetChatMember request = new GetChatMember(chatId, rndMemberId);
+    	GetChatMemberResponse getChatMemberResponse = this.execute(request);
+    	ChatMember member = getChatMemberResponse.chatMember();
+    	
+    	boolean exists = chatMemberExists(member);
+    	
+    	if (exists) return member;
+    	else return pickRandomChatMember(chatId, chatMembers);
+	}
 	public User botGetMe() {
 		GetMe request = new GetMe();
 		GetMeResponse getMeResponse = this.execute(request);
@@ -556,7 +746,7 @@ public class Bot extends TelegramBot {
 	}
 	
 	public void confirmAllUpdates(MessageHandler handler) {
-		GetUpdates getUnhandled = new GetUpdates().offset(0).timeout(0);
+		GetUpdates getUnhandled = new GetUpdates();
 		GetUpdatesResponse unhandledResponse = this.execute(getUnhandled);
 		List<Update> unhandledList = unhandledResponse.updates();
 		
@@ -581,7 +771,8 @@ public class Bot extends TelegramBot {
 				if (updateId > highestUpdateId) highestUpdateId = updateId;
 			}
 			
-			GetUpdates confirmUnhandled = new GetUpdates().offset(highestUpdateId + 1).timeout(0);
+			GetUpdates confirmUnhandled = new GetUpdates()
+					.offset(highestUpdateId + 1);
 			this.execute(confirmUnhandled);
 		}
 	}

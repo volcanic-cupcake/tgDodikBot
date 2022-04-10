@@ -243,6 +243,83 @@ public class MessageHandler {
 			
 		}
 	}
+	public void setJokeSession(Message message) {
+		//array of text messages this session ignores
+		List<String> ignore = new ArrayList<String>();
+		ignore.add("/setjoke");
+		ignore.add("/anonymous");
+		ignore.add("/cancel");
+		
+		long fromId = message.from().id();
+		List<SetJokeSession> list = SessionStore.setJoke();
+		
+		for (SetJokeSession setJoke : list) {
+			
+			//in case there is an existing SetJokeSession of that user
+			if (setJoke.authorId() == fromId) {
+				
+				boolean jokeExpected = setJoke.text() == null;
+				boolean confirmExpected = !jokeExpected && setJoke.confirmed() == false;
+				
+				String text = message.text();
+				long chatId = message.chat().id();
+				
+				//break, if it contains something from ignore list
+				boolean fromIgnoreList = ignore.contains(text);
+				if (fromIgnoreList) break;
+				
+				String response = "";
+				if (jokeExpected) {
+					if (text == null) response = "Вибачте, я приймаю лише текстові анекдоти";
+					else if (text.length() > 3700) response = "Вибачте, ваш анекдот занадто довгий";
+					else {
+						boolean anonymous = false;
+						try {	anonymous = bot.userIsAnonymous(fromId);	}
+						catch (FileNotFoundException e) {}
+						
+						String name;
+						if (anonymous) name = "АНОНІМУС";
+						else name = setJoke.authorName();
+						
+						response =
+							  "🔸" + name + "🔸\n"
+							+ "\n"
+							+ text + "\n"
+							+ "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\n"
+							+ "Підтвердити: /confirm\n"
+							+ "\n"
+							+ "Відмінити: /cancel";
+						
+						setJoke.setText(text);
+					}
+				}
+				else if (confirmExpected) {
+					
+					if (text == null) response = "Будь ласка, відправте /confirm або /cancel";
+					else if ( !text.contentEquals("/confirm") ) {
+						response = "Будь ласка, відправте /confirm або /cancel";
+					}
+					else {
+						setJoke.setConfirmed(true);
+						
+						boolean anonymous = false;
+						try {	anonymous = bot.userIsAnonymous(fromId);	}
+						catch (FileNotFoundException e) {}
+						
+						Joke joke = setJoke.toJoke(anonymous);
+						try {	Joke.addJoke(joke);	}
+						catch (IOException e) {}
+						
+						SessionStore.clear(fromId);
+						response = "Анекдот збережено! Дякую за ваш внесок!";
+					}
+				}
+				SendMessage sendMessage = new SendMessage(chatId, response);
+				bot.execute(sendMessage);
+				break;
+			}
+		}
+	}
 	private boolean birthdayExists(long fromId, long contactId) {
 		List<Birthday> birthdays = null;
 		try {	birthdays = Birthday.readBirthdays();	}

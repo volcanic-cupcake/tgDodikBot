@@ -22,10 +22,13 @@ public class Main {
 		bot.chats = BotChat.readChats();
 		MessageHandler handler = new MessageHandler(bot);
 		bot.confirmAllUpdates(handler);
+		try {	bot.congratulateToday();	}
+    	catch (IOException e) {}
 		
 		Timer timer = new Timer();
 		long delay = Bot.congratulateDelay(10);
 		long period = 24 * 60 * 60 * 1000;
+		
 		timer.schedule(new TimerTask() {
 		    @Override
 		    public void run() {
@@ -35,7 +38,7 @@ public class Main {
 		}, delay, period);
 		// Listening for updates
 		bot.setUpdatesListener(updates -> {
-			if (updates.size() > 10) return UpdatesListener.CONFIRMED_UPDATES_ALL;
+			if (updates.size() > 5) return UpdatesListener.CONFIRMED_UPDATES_ALL;
 			
 		    for (Update update : updates) {
 		    	
@@ -44,18 +47,23 @@ public class Main {
 		    	if (message != null) {			    		
 		    		Type type = message.chat().type();
 		    		String text = message.text();
+		    		long fromId = message.from().id();
+		    		boolean isBanned = bot.banned.contains(fromId);
 		    		
 		    		switch(type) {
 		    		case Private:
-		    			handler.setBirthdaySession(message);
-		    			if (text != null) handler.Private(message);
+		    			if (!isBanned) {
+			    			handler.setBirthdaySession(message);
+			    			handler.setJokeSession(message);
+			    			if (text != null) handler.Private(message);
+		    			}
 		    			break;
 		    		case group:
 		    		case supergroup:		    			
 		    			try { handler.updateChatData(bot.chats, message); }
 			    		catch (IOException e) {}
 		    			
-		    			if (text != null) handler.group(message);
+		    			if (text != null && !isBanned) handler.group(message);
 		    			break;
 					default:
 						break;
