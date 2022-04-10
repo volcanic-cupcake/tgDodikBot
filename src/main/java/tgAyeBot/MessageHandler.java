@@ -78,6 +78,7 @@ public class MessageHandler {
 		List<String> ignore = new ArrayList<String>();
 		ignore.add("/setbirthday");
 		ignore.add("/anonymous");
+		ignore.add("/cancel");
 		
 		
 		long fromId = message.from().id();
