@@ -1,8 +1,6 @@
 package tgAyeBot;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class Session {
 	

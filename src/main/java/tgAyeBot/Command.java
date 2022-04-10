@@ -1,11 +1,7 @@
 package tgAyeBot;
 
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.Update;
 
 public class Command {
 	enum CommandType {

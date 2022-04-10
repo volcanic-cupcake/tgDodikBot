@@ -2,7 +2,6 @@ package tgAyeBot;
 
 import java.io.FileNotFoundException;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 

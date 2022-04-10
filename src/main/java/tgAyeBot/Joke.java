@@ -2,7 +2,6 @@ package tgAyeBot;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 

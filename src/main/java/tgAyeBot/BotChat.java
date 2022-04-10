@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.pengrad.telegrambot.model.ChatMember;
-
 public class BotChat {
 	
 	private long id;
