@@ -51,6 +51,9 @@ public class MessageHandler {
 	}
 	
 	public void Private(Message message) {
+		boolean isFromBot = message.from().isBot();
+		if (isFromBot) return;
+		
 		String text = message.text();
 		if (text.startsWith("/birthdayremove_")) {
 			SessionStore.clear(message.from().id());
@@ -64,6 +67,9 @@ public class MessageHandler {
 	}
 	
 	public void group(Message message) {
+		boolean isFromBot = message.from().isBot();
+		if (isFromBot) return;
+		
 		String text = message.text();
 		if (text.startsWith("/birthdaytext_")) {
 			SessionStore.clear(message.from().id());
@@ -420,6 +426,11 @@ public class MessageHandler {
 	}
 	
 	private void normalMessage(List<BotChat> chats, long chatId, long fromId) throws IOException {
+		//exits if that message is from itself
+		long myId = bot.me().id();
+		boolean isMe = myId == fromId;
+		if (isMe) return;
+		
 		//checks if a chat already exists
 		boolean chatExists = false;
 		for (BotChat chat : chats) {
@@ -433,7 +444,6 @@ public class MessageHandler {
 				break;
 			}
 		}
-		
 		//adds the chat to the chats list and the text database,
 		//if it doesn't exist
 		if ( !chatExists ) {
@@ -447,13 +457,19 @@ public class MessageHandler {
 	}
 	
 	private void joinedUsersMessage(List<BotChat> chats, long chatId, long fromId, User[] joinedUsers) throws IOException {
-	
+		
+		long myId = bot.me().id();
+		
 		//gathers all userIds in one list
 		List<Long> userIds = new ArrayList<Long>();
 		for (User joinedUser : joinedUsers) {
 			userIds.add( joinedUser.id() );
 		}
 		if ( !userIds.contains(fromId) ) userIds.add(fromId);
+		if ( userIds.contains(myId) ) {
+			Long myIdWrapper = Long.valueOf(myId);
+			userIds.remove(myIdWrapper);
+		}
 		
 		//checks if a chat already exists
 		boolean chatExists = false;
@@ -487,6 +503,7 @@ public class MessageHandler {
 	private void leftUserMessage(List<BotChat> chats, long chatId, long fromId, long leftId) throws IOException {
 		
 		boolean kickerExists = kickerExists(fromId, leftId);
+		long myId = bot.me().id();
 		
 		//checks if a chat already exists
 		boolean chatExists = false;
@@ -497,7 +514,8 @@ public class MessageHandler {
 				boolean removeLeft = chat.members().contains(leftId);
 				boolean addKicker =
 						kickerExists &&
-						!chat.members().contains(fromId);
+						!chat.members().contains(fromId) &&
+						fromId != myId;
 				boolean changes = removeLeft || addKicker; //whether users have been removed/added
 				if (removeLeft) chat.members().remove(leftId);
 				if (addKicker) chat.members().add(fromId);
@@ -541,7 +559,7 @@ public class MessageHandler {
 			}
 		}
 	}
-	private void groupCommands(Message message) {
+	private void groupCommands(Message message) {	
 		String inputText = message.text();
 		String text = inputText.strip();
 		

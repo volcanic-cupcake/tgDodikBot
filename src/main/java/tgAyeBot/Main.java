@@ -51,7 +51,7 @@ public class Main {
 		    			if (!isBanned) {
 			    			handler.setBirthdaySession(message);
 			    			handler.setJokeSession(message);
-			    			if (text != null) handler.Private(message);
+			    			if (text != null) handler.Private(message); //handle private commands
 		    			}
 		    			break;
 		    		case group:
@@ -59,7 +59,7 @@ public class Main {
 		    			try { handler.updateChatData(bot.chats, message); }
 			    		catch (IOException e) {}
 		    			
-		    			if (text != null && !isBanned) handler.group(message);
+		    			if (text != null && !isBanned) handler.group(message); //handle group commands
 		    			break;
 					default:
 						break;

@@ -33,7 +33,8 @@ import tgAyeBot.Command.CommandType;
 
 public class Bot extends TelegramBot {
 	
-	private final String USERNAME = "@" + botGetMe().username();
+	private final User ME = botGetMe(); 
+	private final String USERNAME = "@" + ME.username();
 	List<BotChat> chats = new ArrayList<BotChat>();
 	List<Long> banned = readBanned();
 	
@@ -686,8 +687,8 @@ public class Bot extends TelegramBot {
     	ChatMember member = getChatMemberResponse.chatMember();
     	
     	boolean exists = chatMemberExists(member);
-    	
-    	if (exists) return member;
+    	boolean isBot = exists && member.user().isBot();
+    	if (exists && !isBot) return member;
     	else return pickRandomChatMember(chatId, chatMembers);
 	}
 	public User botGetMe() {
@@ -700,6 +701,9 @@ public class Bot extends TelegramBot {
 	
 	public String username() {
 		return this.USERNAME;
+	}
+	public User me() {
+		return this.ME;
 	}
 	
 	private String zdtToString(ZonedDateTime zdt) {
