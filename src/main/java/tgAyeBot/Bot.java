@@ -274,8 +274,9 @@ public class Bot extends TelegramBot {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
-				String link = "its not a link but it will be";
-				SendMessage send = new SendMessage(chatId, link);
+				String link = "https://youtube.com/playlist?list=PL8C2JQ0S1cyNUdJE2PKJDmBq_l0Ibcwon";
+				SendMessage send = new SendMessage(chatId, link)
+						.disableWebPagePreview(true);
 				bot.execute(send);
 			}
 		};
