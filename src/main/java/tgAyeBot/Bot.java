@@ -425,6 +425,77 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
+		Command tickle = new Command(CommandType.GROUP, true, "/tickle") {
+			@Override
+			public void execute (Message message) {
+				String interraction1 = "полоскотав";
+				String interraction2 = "залоскотав";
+				String[] interractions = {interraction1, interraction2};
+				interract(message, interractions);
+			}
+		};
+		
+		Command hug = new Command(CommandType.GROUP, true, "/hug") {
+			@Override
+			public void execute (Message message) {
+				String interraction1 = "обійняв";
+				String interraction2 = "подарував свої обійми";
+				String interraction3 = "кріпко обійняв";
+				String[] interractions = {interraction1, interraction2, interraction3};
+				interract(message, interractions);
+			}
+		};
+		
+		Command lick = new Command(CommandType.GROUP, true, "/lick") {
+			@Override
+			public void execute (Message message) {
+				String interraction1 = "лизнув";
+				String interraction2 = "облизав";
+				String interraction3 = "лизанув";
+				String interraction4 = "смачно облизав";
+				String interraction5 = "лизунькнув";
+				String[] interractions = {interraction1, interraction2, interraction3, interraction4, interraction5};
+				interract(message, interractions);
+			}
+		};
+		
+		Command kiss = new Command(CommandType.GROUP, true, "/kiss") {
+			@Override
+			public void execute (Message message) {
+				String interraction1 = "поцілуівав";
+				String interraction2 = "обмінявся поцілунком з";
+				String interraction3 = "зацілував";
+				String[] interractions = {interraction1, interraction2, interraction3};
+				interract(message, interractions);
+			}
+		};
+		
+		
+		Command punch = new Command(CommandType.GROUP, true, "/punch") {
+			@Override
+			public void execute (Message message) {
+				String interraction1 = "вдарив";
+				String interraction2 = "заїхав по морді";
+				String interraction3 = "прописав двійочку";
+				String interraction4 = "бахнув";
+				String interraction5 = "ляпаснув";
+				String[] interractions = {interraction1, interraction2, interraction3, interraction4, interraction5};
+				interract(message, interractions);
+			}
+		};
+		
+		Command bite = new Command(CommandType.GROUP, true, "/bite") {
+			@Override
+			public void execute (Message message) {
+				String interraction1 = "вкусив";
+				String interraction2 = "гризанув";
+				String interraction3 = "зробив кусь";
+				String interraction4 = "кусянув";
+				String[] interractions = {interraction1, interraction2, interraction3, interraction4};
+				interract(message, interractions);
+			}
+		};
+		
 		Command insult = new Command(CommandType.GROUP, true, "/insult") {
 			@Override
 			public void execute (Message message) {
@@ -477,7 +548,8 @@ public class Bot extends TelegramBot {
 		Command[] commands = {
 				help, creator, info, report, github, youtube, russian_warship, start,
 				cancel, anonymous,
-				set_birthday, my_birthdays, set_joke, joke, privacy, insult
+				set_birthday, my_birthdays, set_joke, joke, privacy,
+				tickle, hug, lick, kiss, punch, bite, insult
 		};
 		return commands;
 	}
@@ -840,5 +912,45 @@ public class Bot extends TelegramBot {
 				+ "привітань та бажаю тобі весело провести цей день :D\n";
 		
 		return text;
+	}
+	private void interract(Message message, String[] interractions) {
+		boolean valid = interractionValid(message);
+		if (!valid) return;
+		
+		long chatId = message.chat().id();
+		String fromName = message.from().firstName();
+		String toName = message.replyToMessage().from().firstName();
+		
+		Random random = new Random();
+		int rndIndex = random.nextInt(interractions.length);
+		String interraction = interractions[rndIndex];
+		
+		String output = fromName + " " + interraction + " " + toName;
+		SendMessage send = new SendMessage(chatId, output);
+		this.execute(send);
+	}
+	private boolean interractionValid (Message message) {
+		long chatId = message.chat().id();
+		Message replyToMessage = message.replyToMessage();
+		if (replyToMessage == null) {
+			String response = "Вам треба відповісти на повідомлення людини, з якою взаємодіємо";
+			SendMessage send = new SendMessage(chatId, response);
+			this.execute(send);
+			
+			return false;
+		}
+		
+		long fromId = message.from().id();
+		long toId = replyToMessage.from().id();
+		boolean selfInterraction = fromId == toId;
+		if (selfInterraction) {
+			String response = "З собою взаємодіяти неможна!";
+			SendMessage send = new SendMessage(chatId, response);
+			this.execute(send);
+			
+			return false;
+		}
+		
+		return true;
 	}
 }
