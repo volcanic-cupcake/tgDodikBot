@@ -9,6 +9,9 @@ import com.pengrad.telegrambot.*;
 import com.pengrad.telegrambot.model.Chat.Type;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendAnimation;
+import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.request.SendPhoto;
 
 public class Main {
 
@@ -20,6 +23,8 @@ public class Main {
 		bot.confirmAllUpdates(handler);
 		try {	bot.congratulateToday();	}
     	catch (IOException e) {}
+		
+		bot.updateNotification();
 		
 		Timer timer = new Timer();
 		long delay = Bot.congratulateDelay(10);
@@ -40,7 +45,7 @@ public class Main {
 		    	
 		    	Message message = update.message();
 		    	
-		    	if (message != null) {			    		
+		    	if (message != null) {
 		    		Type type = message.chat().type();
 		    		String text = message.text();
 		    		long fromId = message.from().id();

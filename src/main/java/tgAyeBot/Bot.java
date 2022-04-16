@@ -22,6 +22,7 @@ import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.GetChatMember;
 import com.pengrad.telegrambot.request.GetMe;
 import com.pengrad.telegrambot.request.GetUpdates;
+import com.pengrad.telegrambot.request.SendAnimation;
 import com.pengrad.telegrambot.request.SendContact;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.GetChatMemberResponse;
@@ -104,6 +105,7 @@ public class Bot extends TelegramBot {
 				+ "/youtube - плейлист з поясненням на Ютубі\n"
 				+ "/privacy - які данні я збираю\n"
 				+ "/info - інформація про проект\n"
+				+ "/update - інформація про останнє оновлення\n"
 				+ "/creator - автор бота\n"
 				+ "/report - повідомити про порушення\n"
 				+ "/github - репозиторій на GitHub\n"
@@ -119,6 +121,11 @@ public class Bot extends TelegramBot {
 				+ "\n"
 				
 				+ "🔶ГРУПОВІ ЧАТИ🔶\n"
+				+ "/handshake - потиснути руку\n"
+				+ "/tickle - полоскотати\n"
+				+ "/hug - обійняти\n"
+				+ "/punch - вдарити\n"
+				+ "/bite - зробити кусь\n"
 				+ "/insult - образити рандомну людину\n"
 				+ "\n"
 				
@@ -243,6 +250,31 @@ public class Bot extends TelegramBot {
 						+ "\n\n"
 						+ "Дякую за увагу!";
 				SendMessage send = new SendMessage(chatId, text);
+				bot.execute(send);
+			}
+		};
+		
+		Command update = new Command(CommandType.PRIVATE_AND_GROUP, true, "/update") {
+			@Override
+			public void execute(Message message) {
+				long chatId = message.chat().id();
+				String text =
+						  "✅ версія 2.0.0 ✅\n"
+						+ "\n"
+								  
+						+ "Додано взаємодії:\n"
+						+ "/handshake - потиснути руку\n"
+						+ "/tickle - полоскотати\n"
+						+ "/hug - обійняти\n"
+						+ "/punch - вдарити\n"
+						+ "/bite - вкусити\n"
+						+ "\n"
+						
+						+ "Список усіх релізів:\n"
+						+ "https://github.com/volcanic-cupcake/tgDodikBot/releases\n";
+				
+				SendMessage send = new SendMessage(chatId, text)
+						.disableWebPagePreview(true);
 				bot.execute(send);
 			}
 		};
@@ -425,74 +457,130 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
+		Command handshake = new Command(CommandType.GROUP, true, "/handshake") {
+			@Override
+			public void execute (Message message) {
+				String[] interractions = {
+						"потиснув руку",
+						"дружньо потиснув руку"
+				};
+				
+				String[] animations = {
+						"CgACAgIAAxkBAAIGm2Jani_VD3gxAAEvGM2HmBgEyDlBzgACHRgAAhqq2Uq7lAPZ9Qm6ZyME",
+						"CgACAgIAAxkBAAIGnGJanjCmgPQVfMCJl6W-fVHZns6KAAIfGAACGqrZSn91haOwefadIwQ",
+						"CgACAgIAAxkBAAIGnWJanmqYNV-bqyPE3BnQPhqiNvYDAAIgGAACGqrZSrr1YnXGWR6jIwQ",
+						"CgACAgIAAxkBAAIGn2JanuFXV5AbJ-VZVOlS2BCkAtvcAAImGAACGqrZSk262ScFtzy-IwQ",
+						"CgACAgIAAxkBAAIGoGJanwVdE__rSfCq3GLtWZuKwVF-AAInGAACGqrZSrliTIl0h7LRIwQ",
+						"CgACAgIAAxkBAAIGoWJanzg_SMH2eE_ENjsXJJll2zr5AAIrGAACGqrZSmKO54v5ZZdHIwQ",
+						"CgACAgIAAxkBAAIGomJan8j7nmbpI3UPykvoNnT6Nh-ZAAItGAACGqrZStiDF4xGm5YBIwQ",
+						"CgACAgIAAxkBAAIGo2Jan80LmvoH5k4lrjt_DyJM_-J0AAIuGAACGqrZSi6RFsDdIV21IwQ",
+						"CgACAgIAAxkBAAIGpGJan-IpE9pZNnEM9vAioWc8_mrLAAIvGAACGqrZSuBtxUNvQzUCIwQ"
+				};
+				
+				interract(message, interractions, animations);
+			}
+		};
+		
 		Command tickle = new Command(CommandType.GROUP, true, "/tickle") {
 			@Override
 			public void execute (Message message) {
-				String interraction1 = "полоскотав";
-				String interraction2 = "залоскотав";
-				String[] interractions = {interraction1, interraction2};
-				interract(message, interractions);
+				String[] interractions = {
+						"полоскотав",
+						"залоскотав"
+				};
+				
+				String[] animations = {
+						"CgACAgIAAxkBAAIGpWJapitaQ2HKnfS6J48AASkREE8n3gACNxgAAhqq2UpNF_6FAQEVMiME",
+						"CgACAgIAAxkBAAIGpmJapjHTVcWe7DOraT2NZi7JkJNsAAI4GAACGqrZSmsWMY2mVMciIwQ",
+						"CgACAgIAAxkBAAIGp2JappVkqR-GIyc60RfHmDxWLkPRAAI5GAACGqrZSgg_n3LrbinSIwQ",
+						"CgACAgIAAxkBAAIGqGJapsvIYWxnrZ9POWTGjTZF4E7hAAI7GAACGqrZSl3bi0nOoc9aIwQ",
+						"CgACAgIAAxkBAAIGqWJaps_2LtJMMjEKwaWRBbJRl60sAAI8GAACGqrZSoIIy-tt3y6YIwQ",
+						"CgACAgIAAxkBAAIGqmJapxQB0cT9z3smvyzSYlMKaEhjAAI9GAACGqrZStnhcEKWGqapIwQ",
+						"CgACAgIAAxkBAAIGq2Jap5hNuWoxK3Z3IMEh6ntZJgPQAAJDGAACGqrZSrQbIOZ8hoImIwQ"
+				};
+				
+				interract(message, interractions, animations);
 			}
 		};
 		
 		Command hug = new Command(CommandType.GROUP, true, "/hug") {
 			@Override
 			public void execute (Message message) {
-				String interraction1 = "обійняв";
-				String interraction2 = "подарував свої обійми";
-				String interraction3 = "кріпко обійняв";
-				String[] interractions = {interraction1, interraction2, interraction3};
-				interract(message, interractions);
+				String[] interractions = {
+						"обійняв",
+						"заобіймав",
+						"міцно обійняв",
+						"поділився обіймашками з"
+				};
+				
+				String[] animations = {
+						"CgACAgIAAxkBAAIGrGJatlj4BOCQgSh7JP1KrPnEddKiAAJ2GAACGqrZSmujZXCBYwvtIwQ",
+						"CgACAgIAAxkBAAIGrWJatos_xhAEBX2ctISQReEZ4wm3AAJ5GAACGqrZSp1a0n4IU3umIwQ",
+						"CgACAgIAAxkBAAIGr2JatrtVwzzd_meSyZrEsb0Q2kfMAAJ7GAACGqrZSsuJiaeB5c2PIwQ",
+						"CgACAgIAAxkBAAIGsGJatta9O2yHPTXRt26Uo78e8eZ4AAJ-GAACGqrZSllim108mkNpIwQ",
+						"CgACAgIAAxkBAAIGsWJatxOb_rUgzZ8RPqRF59abAqu3AAJ_GAACGqrZSjhEVGMf1VHWIwQ",
+						"CgACAgIAAxkBAAIGsmJatyyeHzUSCsqSEiIQsFxlkaa6AAKBGAACGqrZSiPG65djAWNxIwQ",
+						"CgACAgIAAxkBAAIGs2Jat2_5nafJYz7So1KDuFf4x_pfAAKCGAACGqrZSjHh7j3dos2BIwQ",
+						"CgACAgIAAxkBAAIGtGJat6cCSmD7hl_yibyF69WdGguCAAKDGAACGqrZSh1RpWEe2W44IwQ",
+						"CgACAgIAAxkBAAIGtWJat8o9pEAYgoELYCTclIkk8-LhAAKFGAACGqrZSiJAp_Cl2gKeIwQ",
+						"CgACAgIAAxkBAAIGtmJat9WH0wLCmcU53emrUqSt8esSAAKHGAACGqrZShk8XvOFNSQ-IwQ",
+						"CgACAgIAAxkBAAIGt2JauD5hQmFZ2gLoImWbcbCJ3izvAAKIGAACGqrZStdJT75jLJ9GIwQ",
+						"CgACAgIAAxkBAAIGuGJauH5pwghB5t-zrhy01eu5wJ8bAAKKGAACGqrZShX_oPKCJBUKIwQ",
+						"CgACAgIAAxkBAAIGuWJauLtsq4xYNsESsSDXlRRDhvJtAAKLGAACGqrZSsha89m3-7e2IwQ"
+				};
+				
+				interract(message, interractions, animations);
 			}
 		};
-		
-		Command lick = new Command(CommandType.GROUP, true, "/lick") {
-			@Override
-			public void execute (Message message) {
-				String interraction1 = "лизнув";
-				String interraction2 = "облизав";
-				String interraction3 = "лизанув";
-				String interraction4 = "смачно облизав";
-				String interraction5 = "лизунькнув";
-				String[] interractions = {interraction1, interraction2, interraction3, interraction4, interraction5};
-				interract(message, interractions);
-			}
-		};
-		
-		Command kiss = new Command(CommandType.GROUP, true, "/kiss") {
-			@Override
-			public void execute (Message message) {
-				String interraction1 = "поцілуівав";
-				String interraction2 = "обмінявся поцілунком з";
-				String interraction3 = "зацілував";
-				String[] interractions = {interraction1, interraction2, interraction3};
-				interract(message, interractions);
-			}
-		};
-		
 		
 		Command punch = new Command(CommandType.GROUP, true, "/punch") {
 			@Override
 			public void execute (Message message) {
-				String interraction1 = "вдарив";
-				String interraction2 = "заїхав по морді";
-				String interraction3 = "прописав двійочку";
-				String interraction4 = "бахнув";
-				String interraction5 = "ляпаснув";
-				String[] interractions = {interraction1, interraction2, interraction3, interraction4, interraction5};
-				interract(message, interractions);
+				String[] interractions = {
+						"вдарив",
+						"заїхав по морді",
+						"прописав двійочку",
+						"бахнув",
+						"ляпаснув",
+						"вмазав"
+				};
+				
+				String[] animations = {
+						"CgACAgIAAxkBAAIGumJav0nBeAseiQm8OsCfiFSWy7JqAAKSGAACGqrZSpxgHgN-qBMEIwQ",
+						"CgACAgIAAxkBAAIGu2Jav1y5anbTqYjp4wl4XpQWINeJAAKTGAACGqrZSvvRoaalRsytIwQ",
+						"CgACAgIAAxkBAAIGvGJav5qQZN-_QGdxcb1NSdPuK593AAKUGAACGqrZSkOLnyobxisVIwQ",
+						"CgACAgIAAxkBAAIGvWJav5z9OGAd24ENvppByeF0G83ZAAKVGAACGqrZSsRdDaoKMylpIwQ",
+						"CgACAgIAAxkBAAIGvmJav9PmBfkqGUaGrjYVqVg9_XfKAAKWGAACGqrZSji8Pt8_VBSCIwQ",
+						"CgACAgIAAxkBAAIGv2JawD6kYqHg75I_4DQ9Rz7FekQIAAKXGAACGqrZSvm3sbLUavEhIwQ",
+						"CgACAgIAAxkBAAIGwGJawCh2LbRoRXQdnQNCpMANbmUeAAKYGAACGqrZSgRb7HqvWI4YIwQ",
+						"CgACAgIAAxkBAAIGwWJawJEW2M2wPDquNtdx7EtxO3vRAAKaGAACGqrZSk4EjDnoY22kIwQ"
+				};
+				
+				interract(message, interractions, animations);
 			}
 		};
 		
 		Command bite = new Command(CommandType.GROUP, true, "/bite") {
 			@Override
 			public void execute (Message message) {
-				String interraction1 = "вкусив";
-				String interraction2 = "гризанув";
-				String interraction3 = "зробив кусь";
-				String interraction4 = "кусянув";
-				String[] interractions = {interraction1, interraction2, interraction3, interraction4};
-				interract(message, interractions);
+				String[] interractions = {
+						"вкусив",
+						"гризанув",
+						"зробив кусь",
+						"кусянув"
+				};
+				
+				String[] animations = {
+					"CgACAgIAAxkBAAIGwmJawxVRGUGLi02tqE7dWI5jbrRGAAKdGAACGqrZSmz4svwUQ24AASQE",
+					"CgACAgIAAxkBAAIGw2JawzNrgO9eeJFCjVxMxlxKQ_-9AAKeGAACGqrZSqOVH3iJ-JOVJAQ",
+					"CgACAgIAAxkBAAIGxGJaw2mEWOChDuo9a2xEePdPqkyFAAKfGAACGqrZSkb36CwxupLNJAQ",
+					"CgACAgIAAxkBAAIGxWJaw3bBFbUuDNR6KNvqTTge1kRrAAKgGAACGqrZSqZqKWJdhl-YJAQ",
+					"CgACAgIAAxkBAAIGxmJaw6ll1FvNUZIoowg0D51XDPNWAAKiGAACGqrZSl3g0QvneapbJAQ",
+					"CgACAgIAAxkBAAIGx2Jaw884UBJI_p3sPHb79T3nSfb6AAKjGAACGqrZSibj1ttZdn3HJAQ",
+					"CgACAgIAAxkBAAIGyGJaw_PedxWM2Ql0Fk0enX7r2fSQAAKlGAACGqrZSowjMcknjNxQJAQ"
+				};
+				
+				interract(message, interractions, animations);
 			}
 		};
 		
@@ -546,10 +634,11 @@ public class Bot extends TelegramBot {
 		};
 		
 		Command[] commands = {
-				help, creator, info, report, github, youtube, russian_warship, start,
+				help, creator, info, update, report, github, youtube, russian_warship, start,
 				cancel, anonymous,
-				set_birthday, my_birthdays, set_joke, joke, privacy,
-				tickle, hug, lick, kiss, punch, bite, insult
+				set_birthday, my_birthdays,
+				set_joke, joke, privacy,
+				handshake, tickle, hug, punch, bite, insult
 		};
 		return commands;
 	}
@@ -913,7 +1002,7 @@ public class Bot extends TelegramBot {
 		
 		return text;
 	}
-	private void interract(Message message, String[] interractions) {
+	private void interract(Message message, String[] interractions, String[] animations) {
 		boolean valid = interractionValid(message);
 		if (!valid) return;
 		
@@ -925,10 +1014,16 @@ public class Bot extends TelegramBot {
 		int rndIndex = random.nextInt(interractions.length);
 		String interraction = interractions[rndIndex];
 		
-		String output = fromName + " " + interraction + " " + toName;
-		SendMessage send = new SendMessage(chatId, output);
+		rndIndex = random.nextInt(animations.length); 
+		String animation = animations[rndIndex];
+		
+		String caption = fromName + " " + interraction + " " + toName;
+		SendAnimation send = new SendAnimation(chatId, animation)
+				.caption(caption);
 		this.execute(send);
 	}
+	
+	
 	private boolean interractionValid (Message message) {
 		long chatId = message.chat().id();
 		Message replyToMessage = message.replyToMessage();
@@ -953,4 +1048,34 @@ public class Bot extends TelegramBot {
 		
 		return true;
 	}
+	
+	public void updateNotification() {
+		String text = null;
+		try {	text = TextFile.read(Resource.updateNotification.path);	}
+		catch (FileNotFoundException e) {}
+		
+		boolean notify = text.contentEquals("yes");
+		if (!notify) return;
+		
+		String notification =
+				  "Доступна нова версія бота :)\n"
+				+ "\n"
+				+ "деталі: /update\n";
+		
+		new Thread(() -> {
+			try {
+				TextFile.write(Resource.updateNotification.path, "no", false);
+			} catch (IOException e) {}
+			
+			for (BotChat chat : this.chats) {
+				long chatId = chat.id();
+				SendMessage send = new SendMessage(chatId, notification);
+				this.execute(send);
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {}
+			}
+		}).start();
+	}
+	
 }
