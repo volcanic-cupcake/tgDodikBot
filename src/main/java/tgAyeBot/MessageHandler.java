@@ -11,6 +11,8 @@ import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.SendMessage;
 
+import tgAyeBot.Birthday.Privacy;
+
 
 
 public class MessageHandler {
@@ -85,6 +87,7 @@ public class MessageHandler {
 		ignore.add("/setbirthday");
 		ignore.add("/anonymous");
 		ignore.add("/cancel");
+		ignore.add("/mybirthdays");
 		
 		
 		long fromId = message.from().id();
@@ -95,7 +98,8 @@ public class MessageHandler {
 			//in case there is an existing SetBirthdaySession of that user
 			if (setBirthday.authorId() == fromId) {
 				
-				boolean contactExpected = setBirthday.contactId() == 0;
+				boolean privacyExpected = setBirthday.privacy() == null;
+				boolean contactExpected = !privacyExpected && setBirthday.contactId() == 0;
 				boolean dateExpected = !contactExpected && setBirthday.birthdayDate() == null;
 				boolean textExpected = !dateExpected && setBirthday.text() == null;
 				
@@ -110,7 +114,36 @@ public class MessageHandler {
 				if (fromIgnoreList) break;
 				
 				String respond = "";
-				if (contactExpected) {
+				if (privacyExpected) {
+					
+					boolean Public = text != null && text.contentEquals("/public");
+					boolean Private = text != null && text.contentEquals("/private");
+					
+					if (Public) {
+						Privacy privacy = Privacy.Public;
+						setBirthday.setPrivacy(privacy);
+						respond =
+								  "Тип вашого привітання: публічний\n"
+								+ "\n"
+								+ "тепер надішліть мені контакт друга, якого ми привітаємо\n"
+								+ "\n"
+								+ "також можна переслати сюди будь-яке його повідомлення :)\n";
+					}
+					else if (Private) {
+						Privacy privacy = Privacy.Private;
+						setBirthday.setPrivacy(privacy);
+						respond = 
+								  "Тип вашого привітання: приватний\n"
+								+ "\n"
+								+ "тепер надішліть мені контакт друга, якого ми привітаємо\n"
+								+ "\n"
+								+ "також можна переслати сюди будь-яке його повідомлення :)\n";
+					}
+					else {
+						respond = "Будь ласка, оберіть /public або /private";
+					}
+				}
+				else if (contactExpected) {
 					boolean contactReceived = contact != null && contact.userId() != null;
 					boolean contactChecked = false;
 					if (contactReceived) { //checks if received contact is not sent by the same person
@@ -165,7 +198,11 @@ public class MessageHandler {
 					if (successful) {
 						respond = "Чудово! Тепер надійшли мені дату народження у форматі dd.MM\n"
 								+ "\n"
-								+ "Наприклад 05.12 або 22.04 або 03.06";
+								+ "Наприклад: 05.12 або 22.04 або 03.06\n"
+								+ "\n"
+								+ "Якщо ви вкажете сьогоднішню дату, привітання прийде "
+								+ "наступного року, адже про День Народження друзів треба "
+								+ "пам'ятати заздалегідь :o\n";
 					}
 					else {
 						boolean selfCongratulate =

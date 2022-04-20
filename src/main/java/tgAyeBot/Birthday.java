@@ -9,9 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Birthday implements BirthdayInterface {
+	enum Privacy {
+		Public, Private;
+	}
+	
 	private static String newLineChar = "FIfWdtkdtU";
 	
 	private String code;
+	private Privacy privacy;
 	private long authorId;
 	private String authorName;
 	private long contactId;
@@ -20,8 +25,9 @@ public class Birthday implements BirthdayInterface {
 	private String text;
 	private boolean isDisplayed;
 	
-	Birthday(String code, long authorId, String authorName, long contactId, String contactName, ZonedDateTime birthdayDate, String text, boolean isDisplayed) {
+	Birthday(String code, Privacy privacy, long authorId, String authorName, long contactId, String contactName, ZonedDateTime birthdayDate, String text, boolean isDisplayed) {
 		setCode(code);
+		setPrivacy(privacy);
 		setAuthorId(authorId);
 		setAuthorName(authorName);
 		setContactId(contactId);
@@ -34,6 +40,10 @@ public class Birthday implements BirthdayInterface {
 	@Override
 	public String code() {
 		return this.code;
+	}
+	@Override
+	public Privacy privacy() {
+		return this.privacy;
 	}
 	@Override
 	public long authorId() {
@@ -69,6 +79,10 @@ public class Birthday implements BirthdayInterface {
 		this.code = code;
 	}
 	@Override
+	public void setPrivacy(Privacy privacy) {
+		this.privacy = privacy;
+	}
+	@Override
 	public void setAuthorId(long authorId) {
 		this.authorId = authorId;
 	}
@@ -101,6 +115,7 @@ public class Birthday implements BirthdayInterface {
 		List<Birthday> birthdays = new ArrayList<Birthday>();
 		List<String> lines = TextFile.readLines(Resource.birthdays.path);
 		String codeLine;
+		String privacyLine;
 		String authorIdLine;
 		String authorNameLine;
 		String contactIdLine;
@@ -110,6 +125,7 @@ public class Birthday implements BirthdayInterface {
 		String isDisplayedLine;
 		
 		String code = null;
+		Privacy privacy = null;
 		long authorId = 0;
 		String authorName = null;
 		long contactId = 0;
@@ -127,45 +143,54 @@ public class Birthday implements BirthdayInterface {
 				counter++;
 				break;
 			case 1:
+				privacyLine = line;
+				String Public = "public";
+				String Private = "private";
+				if (privacyLine.contentEquals(Public)) privacy = Privacy.Public;
+				else if (privacyLine.contentEquals(Private)) privacy = Privacy.Private;
+				
+				counter++;
+				break;
+			case 2:
 				authorIdLine = line;
 				authorId = Long.parseLong(authorIdLine);
 				counter++;
 				break;
-			case 2:
+			case 3:
 				authorNameLine = line;
 				authorName = authorNameLine;
 				counter++;
 				break;
-			case 3:
+			case 4:
 				contactIdLine = line;
 				contactId = Long.parseLong(contactIdLine);
 				counter++;
 				break;
-			case 4:
+			case 5:
 				contactNameLine = line;
 				contactName = contactNameLine;
 				counter++;
 				break;
-			case 5:
+			case 6:
 				birthdayDateLine = line;
 				long birthdayDateUnix = Long.parseLong(birthdayDateLine);
 				Instant instant = Instant.ofEpochSecond(birthdayDateUnix);
 				birthdayDate = ZonedDateTime.ofInstant(instant, zoneId);
 				counter++;
 				break;
-			case 6:
+			case 7:
 				textLine = line;
 				text = textLine.replace(newLineChar, "\n");
 				counter++;
 				break;
-			case 7:
+			case 8:
 				isDisplayedLine = line;
 				String yes = "yes";
 				String no = "no";
 				if (isDisplayedLine.contentEquals(yes)) isDisplayed = true;
 				else if (isDisplayedLine.contentEquals(no)) isDisplayed = false;
 				
-				Birthday birthday = new Birthday(code, authorId, authorName, contactId, contactName, birthdayDate, text, isDisplayed);
+				Birthday birthday = new Birthday(code, privacy, authorId, authorName, contactId, contactName, birthdayDate, text, isDisplayed);
 				birthdays.add(birthday);
 				
 				counter = 0;
@@ -178,6 +203,7 @@ public class Birthday implements BirthdayInterface {
 	public static void writeBirthdays(List<Birthday> birthdays) throws IOException {
 		List<String> lines = new ArrayList<String>();
 		String codeLine;
+		String privacyLine = null;
 		String authorIdLine;
 		String authorNameLine;
 		String contactIdLine;
@@ -188,6 +214,15 @@ public class Birthday implements BirthdayInterface {
 		
 		for (Birthday birthday : birthdays) {
 			codeLine = birthday.code();
+			
+			switch(birthday.privacy()) {
+			case Public:
+				privacyLine = "public";
+				break;
+			case Private:
+				privacyLine = "private";
+				break;
+			}
 			
 			authorIdLine = Long.toString( birthday.authorId() );
 			
@@ -206,6 +241,7 @@ public class Birthday implements BirthdayInterface {
 			else isDisplayedLine = "no";
 			
 			lines.add(codeLine);
+			lines.add(privacyLine);
 			lines.add(authorIdLine);
 			lines.add(authorNameLine);
 			lines.add(contactIdLine);

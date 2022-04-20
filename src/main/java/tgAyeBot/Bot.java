@@ -29,6 +29,7 @@ import com.pengrad.telegrambot.response.GetChatMemberResponse;
 import com.pengrad.telegrambot.response.GetMeResponse;
 import com.pengrad.telegrambot.response.GetUpdatesResponse;
 
+import tgAyeBot.Birthday.Privacy;
 import tgAyeBot.Command.CommandType;
 
 
@@ -413,19 +414,13 @@ public class Bot extends TelegramBot {
 				bdaySessions.add(newSession);
 				
 				String text =
-						 	"Будь ласка, надішліть мені контакт друга, якого ми привітаємо\n"
+						 	"Будь ласка, оберіть тип приватності вашого привітання.\n"
+						  + "\n\n"
+						  + "/public — публічний\n"
+						  + "публічні привітання прийдуть в усі чати з цією людиною, навіть якщо вас там немає\n"
 						  + "\n"
-						  + "Також можна переслати сюди будь-яке його повідомлення :)\n"
-						  + "\n"
-						  + "Пам'ятайте! Я надішлю ваше привітання у чати, де побачу "
-						  + "цю людину, навіть якщо вас там немає.\n"
-						  + "\n"
-						  + "Також усім відобразиться ваше ім'я, але ви можете увімкнути "
-						  + "анонімний режим командою /anonymous\n"
-						  + "\n"
-						  + "Якщо ви вкажете сьогоднішню дату, привітання прийде "
-						  + "наступного року, адже про День Народження друзів треба "
-						  + "пам'ятати заздалегідь :o";
+						  + "/private — приватний\n"
+						  + "приватні привітання прийдуть тільки у ті чати, де є ви\n";
 				SendMessage send = new SendMessage(chatId, text);
 				bot.execute(send);
 			}
@@ -884,6 +879,7 @@ public class Bot extends TelegramBot {
 		String separator = "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _";
 		int number = 1;
 		String output = "";
+		String privacy = null;
 		String date;
 		String displayCommand;
 		String removeCommand;
@@ -892,10 +888,21 @@ public class Bot extends TelegramBot {
 			displayCommand = "/birthdaytext_" + birthday.code();
 			removeCommand = "/birthdayremove_" + birthday.code();
 			
+			switch(birthday.privacy()) {
+			case Public:
+				privacy = "публічний";
+				break;
+			case Private:
+				privacy = "приватний";
+				break;
+			}
+			
 			output	+= separator + "\n\n"
 					
 					+ "#" + number + " [ " + birthday.contactName() + " ]\n"
 					+ "Видалити: " + removeCommand + "\n\n"
+					+ "Тип:\n"
+					+ privacy + "\n\n"
 					+ "Ваше ім'я:\n"
 					+ birthday.authorName() + "\n\n"
 					+ "Дата:\n"
@@ -943,51 +950,61 @@ public class Bot extends TelegramBot {
 	
 	public void congratulateToday() throws IOException {
 		List<Birthday> today = Birthday.todayBirthdays();
-		if (today != null) {
-			List<BotChat> chats = this.chats;
-			
-			List<Congrat> congrats = new ArrayList<Congrat>();
-			//for every chat we have
-			for (BotChat chat : chats) {
-				long chatId = chat.id();
-				//for every chat member we have
-				for (long memberId : chat.members()) {
-					boolean memberExists = chatMemberExists(chatId, memberId);
-					if (!memberExists) continue;
+		if (today == null) return;
+		
+		List<BotChat> chats = this.chats;
+		
+		List<Congrat> congrats = new ArrayList<Congrat>();
+		//for every chat we have
+		for (BotChat chat : chats) {
+			long chatId = chat.id();
+			//for every chat member we have
+			for (long memberId : chat.members()) {
+				boolean memberExists = chatMemberExists(chatId, memberId);
+				if (!memberExists) continue;
+				
+				
+				String greetings = "";
+				String separator = "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _";
+				//for every birthday greeting we have today
+				for (Birthday birthday : today) {
+					Privacy privacy = birthday.privacy();
+					long contactId = birthday.contactId();
+					long authorId = birthday.authorId();
+					boolean authorExists = chatMemberExists(chatId, authorId);
 					
 					
-					String greetings = "";
-					String separator = "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _";
-					//for every birthday greeting we have today
-					for (Birthday birthday : today) {
-						long contactId = birthday.contactId();
-						if (memberId == contactId) {
-							greetings +=
-									  separator + "\n\n"
-									+ "🔸" + birthday.authorName() + "🔸" + "\n\n"
-									+ "Подивитися: /birthdaytext_" + birthday.code() + "\n";
-						}
-					}
+					boolean congratPublic = privacy == Privacy.Public && memberId == contactId;
+					boolean congratPrivate =
+							privacy == Privacy.Private &&
+							(memberId == contactId && authorExists);
 					
-					if (!greetings.contentEquals("")) {
-						User user = getChatUser(chatId, memberId);
-						String firstName = user.firstName();
-						String lastName = user.lastName();
-						String fullName;
-						if (lastName == null) fullName = firstName;
-						else fullName = firstName + " " + lastName;
-						
-						String intro = congratulateTodayIntro(firstName, fullName);
-						String text = intro + greetings + separator;
-						
-						Congrat congrat = new Congrat(chatId, text);
-						congrats.add(congrat);
+					if (congratPublic || congratPrivate) {
+						greetings +=
+								  separator + "\n\n"
+								+ "🔸" + birthday.authorName() + "🔸" + "\n\n"
+								+ "Подивитися: /birthdaytext_" + birthday.code() + "\n";
 					}
 				}
+				
+				if (!greetings.contentEquals("")) {
+					User user = getChatUser(chatId, memberId);
+					String firstName = user.firstName();
+					String lastName = user.lastName();
+					String fullName;
+					if (lastName == null) fullName = firstName;
+					else fullName = firstName + " " + lastName;
+					
+					String intro = congratulateTodayIntro(firstName, fullName);
+					String text = intro + greetings + separator;
+					
+					Congrat congrat = new Congrat(chatId, text);
+					congrats.add(congrat);
+				}
 			}
-			
-			if (!congrats.isEmpty()) secureCongratsSend(congrats);
 		}
+		
+		if (!congrats.isEmpty()) secureCongratsSend(congrats);
 	}
 	
 	private String congratulateTodayIntro(String firstName, String fullName) {

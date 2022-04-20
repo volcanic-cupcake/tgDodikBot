@@ -5,11 +5,15 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Random;
 
+import tgAyeBot.Birthday.Privacy;
+
 public class SetBirthdaySession extends Session implements BirthdayInterface{
 	
 	private String code;
 	private String authorName;
 	
+	
+	private Privacy privacy = null;
 	
 	private long contactId = 0;
 	private String contactName = null;
@@ -27,6 +31,10 @@ public class SetBirthdaySession extends Session implements BirthdayInterface{
 	@Override
 	public String code() {
 		return this.code;
+	}
+	@Override
+	public Privacy privacy() {
+		return this.privacy;
 	}
 	@Override
 	public String authorName() {
@@ -53,6 +61,10 @@ public class SetBirthdaySession extends Session implements BirthdayInterface{
 	@Override
 	public void setCode(String code) {
 		this.code = code;
+	}
+	@Override
+	public void setPrivacy(Privacy privacy) {
+		this.privacy = privacy;
 	}
 	@Override
 	public void setAuthorName(String authorName) {
@@ -111,17 +123,19 @@ public class SetBirthdaySession extends Session implements BirthdayInterface{
 	public Birthday toBirthday(boolean anonymous) throws FileNotFoundException {
 		
 		String code = code();
+		Privacy privacy = privacy();
 		long authorId = authorId();
 		long contactId = contactId();
 		String contactName = contactName();
 		ZonedDateTime birthdayDate = birthdayDate();
 		String text = text();
+		boolean isDisplayed = false;
 		
 		String authorName;
 		if (anonymous) authorName = "АНОНІМУС";
 		else authorName = authorName();
 		
-		Birthday birthday = new Birthday(code, authorId, authorName, contactId, contactName, birthdayDate, text, false);
+		Birthday birthday = new Birthday(code, privacy, authorId, authorName, contactId, contactName, birthdayDate, text, isDisplayed);
 		return birthday;
 	}
 }
