@@ -2,6 +2,7 @@ tgAyeBot/Command$CommandType.class
 tgAyeBot/Bot$4.class
 tgAyeBot/Bot$21.class
 tgAyeBot/Bot$11.class
+tgAyeBot/Birthday$Privacy.class
 tgAyeBot/Congrat.class
 tgAyeBot/Session.class
 tgAyeBot/Bot$15.class
@@ -21,6 +22,7 @@ tgAyeBot/Main.class
 tgAyeBot/Bot$7.class
 tgAyeBot/BotChat.class
 tgAyeBot/Bot$14.class
+tgAyeBot/Birthday$1.class
 tgAyeBot/Main$2.class
 tgAyeBot/MessageHandler.class
 tgAyeBot/Bot$23.class

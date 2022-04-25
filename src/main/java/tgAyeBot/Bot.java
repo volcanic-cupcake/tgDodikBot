@@ -106,7 +106,7 @@ public class Bot extends TelegramBot {
 				+ "/youtube - плейлист з поясненням на Ютубі\n"
 				+ "/privacy - які данні я збираю\n"
 				+ "/info - інформація про проект\n"
-				+ "/update - інформація про останнє оновлення\n"
+				+ "/version - версія бота\n"
 				+ "/creator - автор бота\n"
 				+ "/report - повідомити про порушення\n"
 				+ "/github - репозиторій на GitHub\n"
@@ -255,20 +255,21 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
-		Command update = new Command(CommandType.PRIVATE_AND_GROUP, true, "/update") {
+		Command version = new Command(CommandType.PRIVATE_AND_GROUP, true, "/version") {
 			@Override
 			public void execute(Message message) {
 				long chatId = message.chat().id();
 				String text =
-						  "✅ версія 2.0.0 ✅\n"
+						  "✅ версія 2.1 ✅\n"
 						+ "\n"
 								  
-						+ "Додано взаємодії:\n"
-						+ "/handshake - потиснути руку\n"
-						+ "/tickle - полоскотати\n"
-						+ "/hug - обійняти\n"
-						+ "/punch - вдарити\n"
-						+ "/bite - вкусити\n"
+						+ "Тепер в привітань на День Народження є тип приватності:\n"
+						+ "\n"
+						+ "/public — публічний\n"
+						+ "публічні привітання прийдуть в усі чати з цією людиною, навіть якщо вас там немає\n"
+						+ "\n"
+						+ "/private — приватний\n"
+						+ "приватні привітання прийдуть тільки у ті чати, де є ви\n"
 						+ "\n"
 						
 						+ "Список усіх релізів:\n"
@@ -629,7 +630,7 @@ public class Bot extends TelegramBot {
 		};
 		
 		Command[] commands = {
-				help, creator, info, update, report, github, youtube, russian_warship, start,
+				help, creator, info, version, report, github, youtube, russian_warship, start,
 				cancel, anonymous,
 				set_birthday, my_birthdays,
 				set_joke, joke, privacy,
@@ -1077,7 +1078,7 @@ public class Bot extends TelegramBot {
 		String notification =
 				  "Доступна нова версія бота :)\n"
 				+ "\n"
-				+ "деталі: /update\n";
+				+ "деталі: /version\n";
 		
 		new Thread(() -> {
 			try {
