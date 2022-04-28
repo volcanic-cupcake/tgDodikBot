@@ -162,7 +162,6 @@ public class Bot extends TelegramBot {
 	
 	public Command[] commands() {
 		Bot bot = this;
-		//List<Command> commands = new ArrayList<Command>();
 		
 		Command help = new Command(CommandType.PRIVATE_AND_GROUP, true, "/help") {
 			@Override
@@ -584,8 +583,11 @@ public class Bot extends TelegramBot {
 			@Override
 			public void execute (Message message) {
 				long chatId = message.chat().id();
-				User user = randomChatMember(chatId).user();
-				String fullName = getUserFullName(user);
+				User rndUser = randomChatMember(chatId).user();
+				
+				Message replyToMessage = message.replyToMessage();
+				boolean containsReply = replyToMessage != null;
+				String fullName = containsReply ? getUserFullName(replyToMessage.from()) : getUserFullName(rndUser);
 				
 				String offend1 = "ти випадково не граєш у Геншин?";
 				String offend2 =
