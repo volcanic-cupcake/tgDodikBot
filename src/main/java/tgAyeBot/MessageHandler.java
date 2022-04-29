@@ -95,195 +95,192 @@ public class MessageHandler {
 		
 		for (SetBirthdaySession setBirthday : list) {
 			
-			//in case there is an existing SetBirthdaySession of that user
-			if (setBirthday.authorId() == fromId) {
+			if (setBirthday.authorId() != fromId) continue;
+			
+			boolean privacyExpected = setBirthday.privacy() == null;
+			boolean contactExpected = !privacyExpected && setBirthday.contactId() == 0;
+			boolean dateExpected = !contactExpected && setBirthday.birthdayDate() == null;
+			boolean textExpected = !dateExpected && setBirthday.text() == null;
+			
+			String text = message.text();
+			Contact contact = message.contact();
+			User from = message.from();
+			User forwardFrom = message.forwardFrom();
+			long chatId = message.chat().id();
+			
+			//break, if it contains something from ignore list
+			boolean fromIgnoreList = ignore.contains(text);
+			if (fromIgnoreList) break;
+			
+			String respond = "";
+			if (privacyExpected) {
 				
-				boolean privacyExpected = setBirthday.privacy() == null;
-				boolean contactExpected = !privacyExpected && setBirthday.contactId() == 0;
-				boolean dateExpected = !contactExpected && setBirthday.birthdayDate() == null;
-				boolean textExpected = !dateExpected && setBirthday.text() == null;
+				boolean Public = text != null && text.contentEquals("/public");
+				boolean Private = text != null && text.contentEquals("/private");
 				
-				String text = message.text();
-				Contact contact = message.contact();
-				User from = message.from();
-				User forwardFrom = message.forwardFrom();
-				long chatId = message.chat().id();
+				if (Public) {
+					Privacy privacy = Privacy.Public;
+					setBirthday.setPrivacy(privacy);
+					respond =
+							  "Тип вашого привітання: публічний\n"
+							+ "\n"
+							+ "тепер надішліть мені контакт друга, якого ми привітаємо\n"
+							+ "\n"
+							+ "також можна переслати сюди будь-яке його повідомлення :)\n";
+				}
+				else if (Private) {
+					Privacy privacy = Privacy.Private;
+					setBirthday.setPrivacy(privacy);
+					respond = 
+							  "Тип вашого привітання: приватний\n"
+							+ "\n"
+							+ "тепер надішліть мені контакт друга, якого ми привітаємо\n"
+							+ "\n"
+							+ "також можна переслати сюди будь-яке його повідомлення :)\n";
+				}
+				else {
+					respond = "Будь ласка, оберіть /public або /private";
+				}
+			}
+			else if (contactExpected) {
+				boolean contactReceived = contact != null && contact.userId() != null;
+				boolean contactChecked = false;
+				if (contactReceived) { //checks if received contact is not sent by the same person
+					contactChecked = !contact.userId().equals(from.id());
+				}
 				
-				//break, if it contains something from ignore list
-				boolean fromIgnoreList = ignore.contains(text);
-				if (fromIgnoreList) break;
+				boolean forwardReceived = forwardFrom != null && forwardFrom.id() != null;
+				boolean forwardChecked = false;
+				if (forwardReceived) { //checks if forward message is not from the same person
+					forwardChecked = !forwardFrom.id().equals(from.id());
+				}
 				
-				String respond = "";
-				if (privacyExpected) {
-					
-					boolean Public = text != null && text.contentEquals("/public");
-					boolean Private = text != null && text.contentEquals("/private");
-					
-					if (Public) {
-						Privacy privacy = Privacy.Public;
-						setBirthday.setPrivacy(privacy);
-						respond =
-								  "Тип вашого привітання: публічний\n"
-								+ "\n"
-								+ "тепер надішліть мені контакт друга, якого ми привітаємо\n"
-								+ "\n"
-								+ "також можна переслати сюди будь-яке його повідомлення :)\n";
+				boolean contactApproved = contactReceived && contactChecked;
+				boolean forwardApproved = forwardReceived && forwardChecked;
+				
+				boolean birthdayExists = false;
+				if (contactApproved) birthdayExists = birthdayExists(from.id(), contact.userId());
+				else if (forwardApproved) birthdayExists = birthdayExists(from.id(), forwardFrom.id());
+				
+				boolean successful = (contactApproved || forwardApproved) && !birthdayExists;
+				
+				//changing session parameters
+				if (successful) {
+					if (contactApproved) {
+						long contactId = contact.userId();
+						
+						String fullName = "";
+						String firstName = contact.firstName();
+						String lastName = contact.lastName();
+						if (firstName != null) fullName += firstName;
+						if (lastName != null) fullName += " " + lastName;
+						
+						setBirthday.setContactId(contactId);
+						setBirthday.setContactName(fullName);
 					}
-					else if (Private) {
-						Privacy privacy = Privacy.Private;
-						setBirthday.setPrivacy(privacy);
-						respond = 
-								  "Тип вашого привітання: приватний\n"
-								+ "\n"
-								+ "тепер надішліть мені контакт друга, якого ми привітаємо\n"
-								+ "\n"
-								+ "також можна переслати сюди будь-яке його повідомлення :)\n";
+					else if (forwardApproved) {
+						long forwardFromId = forwardFrom.id();
+						
+						String fullName = "";
+						String firstName = forwardFrom.firstName();
+						String lastName = forwardFrom.lastName();
+						if (firstName != null) fullName += firstName;
+						if (lastName != null) fullName += " " + lastName;
+						
+						setBirthday.setContactId(forwardFromId);
+						setBirthday.setContactName(fullName);
+					}
+					
+				}
+				
+				//preparing a message respond
+				if (successful) {
+					respond = "Чудово! Тепер надійшли мені дату народження у форматі dd.MM\n"
+							+ "\n"
+							+ "Наприклад: 05.12 або 22.04 або 03.06\n"
+							+ "\n"
+							+ "Якщо ви вкажете сьогоднішню дату, привітання прийде "
+							+ "наступного року, адже про День Народження друзів треба "
+							+ "пам'ятати заздалегідь :o\n";
+				}
+				else {
+					boolean selfCongratulate =
+							(contactReceived && !contactChecked) ||
+							(forwardReceived && !forwardChecked);
+					if (selfCongratulate) {
+						respond = "Самого себе вітати неможна, мене не обдуриш :D";
+					}
+					else if (birthdayExists) {
+						respond = "Ви вже створили привітання для цієї людини!";
 					}
 					else {
-						respond = "Будь ласка, оберіть /public або /private";
+						respond = "Виникла помилка\n"
+								+ "Можливі причини:\n"
+								+ "\n"
+								+ "🔻я не можу отримати данні про цю людину через її налаштування конфіденційності\n"
+								+ "\n"
+								+ "🔻те, що ви прислали, не є контактом або пересланим від когось повідомленням\n";
 					}
+					
 				}
-				else if (contactExpected) {
-					boolean contactReceived = contact != null && contact.userId() != null;
-					boolean contactChecked = false;
-					if (contactReceived) { //checks if received contact is not sent by the same person
-						contactChecked = !contact.userId().equals(from.id());
-					}
+			}
+			else if (dateExpected) {
+				boolean textReceived = text != null;
+				if (textReceived) {
+					ZonedDateTime date = Bot.uaDateTime(text);
+					boolean successful = date != null;
 					
-					boolean forwardReceived = forwardFrom != null && forwardFrom.id() != null;
-					boolean forwardChecked = false;
-					if (forwardReceived) { //checks if forward message is not from the same person
-						forwardChecked = !forwardFrom.id().equals(from.id());
-					}
-					
-					boolean contactApproved = contactReceived && contactChecked;
-					boolean forwardApproved = forwardReceived && forwardChecked;
-					
-					boolean birthdayExists = false;
-					if (contactApproved) birthdayExists = birthdayExists(from.id(), contact.userId());
-					else if (forwardApproved) birthdayExists = birthdayExists(from.id(), forwardFrom.id());
-					
-					boolean successful = (contactApproved || forwardApproved) && !birthdayExists;
-					
-					//changing session parameters
 					if (successful) {
-						if (contactApproved) {
-							long contactId = contact.userId();
-							
-							String fullName = "";
-							String firstName = contact.firstName();
-							String lastName = contact.lastName();
-							if (firstName != null) fullName += firstName;
-							if (lastName != null) fullName += " " + lastName;
-							
-							setBirthday.setContactId(contactId);
-							setBirthday.setContactName(fullName);
-						}
-						else if (forwardApproved) {
-							long forwardFromId = forwardFrom.id();
-							
-							String fullName = "";
-							String firstName = forwardFrom.firstName();
-							String lastName = forwardFrom.lastName();
-							if (firstName != null) fullName += firstName;
-							if (lastName != null) fullName += " " + lastName;
-							
-							setBirthday.setContactId(forwardFromId);
-							setBirthday.setContactName(fullName);
-						}
+						setBirthday.setBirthdayDate(date);
 						
-					}
-					
-					//preparing a message respond
-					if (successful) {
-						respond = "Чудово! Тепер надійшли мені дату народження у форматі dd.MM\n"
+						respond = "Прекрасно! А тепер, час написати текст привітання :D\n"
 								+ "\n"
-								+ "Наприклад: 05.12 або 22.04 або 03.06\n"
+								+ "Максимальна кількість символів: 3000";
+					}
+					else {
+						respond = "Виникла помилка\n"
+								+ "Можливі причини:\n"
 								+ "\n"
-								+ "Якщо ви вкажете сьогоднішню дату, привітання прийде "
-								+ "наступного року, адже про День Народження друзів треба "
-								+ "пам'ятати заздалегідь :o\n";
-					}
-					else {
-						boolean selfCongratulate =
-								(contactReceived && !contactChecked) ||
-								(forwardReceived && !forwardChecked);
-						if (selfCongratulate) {
-							respond = "Самого себе вітати неможна, мене не обдуриш :D";
-						}
-						else if (birthdayExists) {
-							respond = "Ви вже створили привітання для цієї людини!";
-						}
-						else {
-							respond = "Виникла помилка\n"
-									+ "Можливі причини:\n"
-									+ "\n"
-									+ "🔻я не можу отримати данні про цю людину через її налаштування конфіденційності\n"
-									+ "\n"
-									+ "🔻те, що ви прислали, не є контактом або пересланим від когось повідомленням\n";
-						}
-						
+								+ "🔻ви вказали дату у неправильному форматі\n"
+								+ "\n"
+								+ "🔻ви вказали ім'я своєї бабусі замість дати\n";
 					}
 				}
-				else if (dateExpected) {
-					boolean textReceived = text != null;
-					if (textReceived) {
-						ZonedDateTime date = Bot.uaDateTime(text);
-						boolean successful = date != null;
-						
-						if (successful) {
-							setBirthday.setBirthdayDate(date);
-							
-							respond = "Прекрасно! А тепер, час написати текст привітання :D\n"
-									+ "\n"
-									+ "Максимальна кількість символів: 3000";
-						}
-						else {
-							respond = "Виникла помилка\n"
-									+ "Можливі причини:\n"
-									+ "\n"
-									+ "🔻ви вказали дату у неправильному форматі\n"
-									+ "\n"
-									+ "🔻ви вказали ім'я своєї бабусі замість дати\n";
-						}
-					}
-					else {
-						respond = "Друже, краще надійшли мені текстове повідомлення "
-								+ "з датою Дня Народження твоєго друга";
-					}
+				else {
+					respond = "Друже, краще надійшли мені текстове повідомлення "
+							+ "з датою Дня Народження твоєго друга";
 				}
-				else if (textExpected) {
-					boolean textReceived = text != null;
-					
-					if (textReceived) {
-						final int LENGTH_LIMIT = 3000;
-						boolean successful = text.length() <= LENGTH_LIMIT;
-						if (successful) {
-							try {
-								setBirthday.setText(text);
-								boolean isAnonymous = bot.userIsAnonymous(fromId);
-								Birthday birthday = setBirthday.toBirthday(isAnonymous);
-								Birthday.addBirthday(birthday);
-								
-								SessionStore.clear(fromId);
-							} catch (IOException e) {}
-							
-							respond = "Готово, я привітаю твого друга коли настане час :)";
-						}
-						else {
-							respond = "Вибач, твоє повідомлення має більше 3000 символів :(";
-						}
-					}
-					else {
-						respond = "так неможна, можна тільки текст з привітанням :(";
-					}
-				}
+			}
+			else if (textExpected) {
+				boolean textReceived = text != null;
 				
-				SendMessage sendMessage = new SendMessage(chatId, respond);
-				bot.execute(sendMessage);
-				break;
+				if (textReceived) {
+					final int LENGTH_LIMIT = 3000;
+					boolean successful = text.length() <= LENGTH_LIMIT;
+					if (successful) {
+						try {
+							setBirthday.setText(text);
+							boolean isAnonymous = bot.userIsAnonymous(fromId);
+							Birthday birthday = setBirthday.toBirthday(isAnonymous);
+							Birthday.addBirthday(birthday);
+							
+							SessionStore.clear(fromId);
+						} catch (IOException e) {}
+						
+						respond = "Готово, я привітаю твого друга коли настане час :)";
+					}
+					else {
+						respond = "Вибач, твоє повідомлення має більше 3000 символів :(";
+					}
+				}
+				else {
+					respond = "так неможна, можна тільки текст з привітанням :(";
+				}
 			}
 			
+			SendMessage sendMessage = new SendMessage(chatId, respond);
+			bot.execute(sendMessage);
+			break;
 		}
 	}
 	public void setJokeSession(Message message) {
@@ -298,69 +295,68 @@ public class MessageHandler {
 		
 		for (SetJokeSession setJoke : list) {
 			
-			//in case there is an existing SetJokeSession of that user
-			if (setJoke.authorId() == fromId) {
+			if (setJoke.authorId() != fromId) continue;
 				
-				boolean jokeExpected = setJoke.text() == null;
-				boolean confirmExpected = !jokeExpected && setJoke.confirmed() == false;
 				
-				String text = message.text();
-				long chatId = message.chat().id();
-				
-				//break, if it contains something from ignore list
-				boolean fromIgnoreList = ignore.contains(text);
-				if (fromIgnoreList) break;
-				
-				String response = "";
-				if (jokeExpected) {
-					if (text == null) response = "Вибачте, я приймаю лише текстові анекдоти";
-					else if (text.length() > 3700) response = "Вибачте, ваш анекдот занадто довгий";
-					else {
-						boolean anonymous = false;
-						try {	anonymous = bot.userIsAnonymous(fromId);	}
-						catch (FileNotFoundException e) {}
-						
-						String name;
-						if (anonymous) name = "АНОНІМУС";
-						else name = setJoke.authorName();
-						
-						response =
-							  "🔸" + name + "🔸\n"
-							+ "\n"
-							+ text + "\n"
-							+ "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\n"
-							+ "Підтвердити: /confirm\n"
-							+ "\n"
-							+ "Відмінити: /cancel";
-						
-						setJoke.setText(text);
-					}
-				}
-				else if (confirmExpected) {
+			boolean jokeExpected = setJoke.text() == null;
+			boolean confirmExpected = !jokeExpected && setJoke.confirmed() == false;
+			
+			String text = message.text();
+			long chatId = message.chat().id();
+			
+			//break, if it contains something from ignore list
+			boolean fromIgnoreList = ignore.contains(text);
+			if (fromIgnoreList) break;
+			
+			String response = "";
+			if (jokeExpected) {
+				if (text == null) response = "Вибачте, я приймаю лише текстові анекдоти";
+				else if (text.length() > 3700) response = "Вибачте, ваш анекдот занадто довгий";
+				else {
+					boolean anonymous = false;
+					try {	anonymous = bot.userIsAnonymous(fromId);	}
+					catch (FileNotFoundException e) {}
 					
-					if (text == null) response = "Будь ласка, відправте /confirm або /cancel";
-					else if ( !text.contentEquals("/confirm") ) {
-						response = "Будь ласка, відправте /confirm або /cancel";
-					}
-					else {
-						setJoke.setConfirmed(true);
-						
-						boolean anonymous = false;
-						try {	anonymous = bot.userIsAnonymous(fromId);	}
-						catch (FileNotFoundException e) {}
-						
-						Joke joke = setJoke.toJoke(anonymous);
-						try {	Joke.addJoke(joke);	}
-						catch (IOException e) {}
-						
-						SessionStore.clear(fromId);
-						response = "Анекдот збережено! Дякую за ваш внесок!";
-					}
+					String name;
+					if (anonymous) name = "АНОНІМУС";
+					else name = setJoke.authorName();
+					
+					response =
+						  "🔸" + name + "🔸\n"
+						+ "\n"
+						+ text + "\n"
+						+ "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\n"
+						+ "Підтвердити: /confirm\n"
+						+ "\n"
+						+ "Відмінити: /cancel";
+					
+					setJoke.setText(text);
 				}
-				SendMessage sendMessage = new SendMessage(chatId, response);
-				bot.execute(sendMessage);
-				break;
 			}
+			else if (confirmExpected) {
+				
+				if (text == null) response = "Будь ласка, відправте /confirm або /cancel";
+				else if ( !text.contentEquals("/confirm") ) {
+					response = "Будь ласка, відправте /confirm або /cancel";
+				}
+				else {
+					setJoke.setConfirmed(true);
+					
+					boolean anonymous = false;
+					try {	anonymous = bot.userIsAnonymous(fromId);	}
+					catch (FileNotFoundException e) {}
+					
+					Joke joke = setJoke.toJoke(anonymous);
+					try {	Joke.addJoke(joke);	}
+					catch (IOException e) {}
+					
+					SessionStore.clear(fromId);
+					response = "Анекдот збережено! Дякую за ваш внесок!";
+				}
+			}
+			SendMessage sendMessage = new SendMessage(chatId, response);
+			bot.execute(sendMessage);
+			break;
 		}
 	}
 	private boolean birthdayExists(long fromId, long contactId) {
