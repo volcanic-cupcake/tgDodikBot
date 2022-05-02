@@ -4,6 +4,7 @@ public enum Resource {
 	TOKEN("src/main/resources/TOKEN.txt"),
 	birthdays("src/main/resources/birthdays.txt"),
 	jokes("src/main/resources/jokes.txt"),
+	insults("src/main/resources/insults.txt"),
 	chats("src/main/resources/chats.txt"),
 	anonymousMode("src/main/resources/anonymousMode.txt"),
 	banned("src/main/resources/banned.txt"),

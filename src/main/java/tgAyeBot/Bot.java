@@ -119,6 +119,7 @@ public class Bot extends TelegramBot {
 				+ "/setbirthday - зберегти привітання\n"
 				+ "/mybirthdays - управління привітаннями\n"
 				+ "/setjoke - додати анекдот до спільного сховища\n"
+				+ "/setinsult - додати образу до спільного сховища\n"
 				+ "\n"
 				
 				+ "🔶ГРУПОВІ ЧАТИ🔶\n"
@@ -452,6 +453,32 @@ public class Bot extends TelegramBot {
 			}
 		};
 		
+		Command set_insult = new Command(CommandType.PRIVATE, true, "/setinsult") {
+			@Override
+			public void execute(Message message) {
+				User from = message.from();
+				long fromId = from.id();
+				long chatId = message.chat().id();
+				
+				String fullName = getUserFullName(from);
+				ZonedDateTime now = uaDateTimeNow();
+				
+				List<SetInsultSession> insultSessions = SessionStore.setInsult();
+				
+				SetInsultSession newSession = new SetInsultSession(now, fromId, fullName);
+				insultSessions.add(newSession);
+				
+				String text =
+					 	"Будь ласка, придумайте образу\n"
+					  + "\n"
+					  + "🔹максимальна довжина: 150 символів\n"
+					  + "🔹перша літера буде маленькою\n"
+					  + "🔹усі образи анонімні для інших\n";
+				SendMessage send = new SendMessage(chatId, text);
+				bot.execute(send);
+			}
+		};
+		
 		Command handshake = new Command(CommandType.GROUP, true, "/handshake") {
 			@Override
 			public void execute (Message message) {
@@ -589,43 +616,15 @@ public class Bot extends TelegramBot {
 				boolean containsReply = replyToMessage != null;
 				String fullName = containsReply ? getUserFullName(replyToMessage.from()) : getUserFullName(rndUser);
 				
-				String offend1 = "ти випадково не граєш у Геншин?";
-				String offend2 =
-						    "щоб опуститися до твого рівня, "
-						    + "мені потрібно провалитися крізь землю";
-				String offend3 = "бачиш плінтус? Ось, це якраз твій рівень";
-				String offend4 = "чудово пахнеш\n\nНаїбав. Ваняєш, як свинюка у багнюці!";
-				String offend5 = "нехай твій батько надалі буде обережний. Потрібно берегтися, "
-						+ "щоб на світ не з’являлися такі виродки, як ти";
-				String offend6 = "своєю красою ти би явно світ не врятував";
-				String offend7 = "ти погано себе почуваєш або виглядаєш так завжди?";
-				String offend8 = "природа вирішила над тобою особливо не морочитися";
-				String offend9 = "я б тебе образив, але думаю, тебе дзеркало кожен день ображає";
-				String offend10 = "сподіваюся, ти не завжди такий дурний, а лише сьогодні";
-				String offend11 = "тобою випадково в дитинстві Бабая не лякали?";
-				String offend12 = "якби у тупості були крила, ти би пурхав, як метелик";
-				String offend13 = "в вас з російським кораблем багато спільного. Ви обидва "
-						+ "йдете нахуй.";
-				String offend14 = "я навіть жарт вигадувати не буду, просто йди нахуй";
-				String offend15 = "якщо б я не був ботом, начистив би тобі морду";
-				String offend16 = "я спочатку рахував скільки разів тебе роняли у дитинстві, "
-						+ "але на 100-му разі збився";
-				String offend17 = "йди на три хуя, ти пизда нетрахана.";
-				String offend18 = "був би ти негром, я б тебе відразу продав";
-				String offend19 = "від тебе лайном ваняє";
-				String offend20 = "ти мене бісиш, йди втопися";
-				
-				String offends[] = {
-						offend1, offend2, offend3, offend4, offend5, offend6,
-						offend7, offend8, offend9, offend10, offend11, offend12,
-						offend13, offend14, offend15, offend16, offend17, offend18,
-						offend19, offend20
-				};
+				List<Insult> insults = null;
+				try {
+					insults = Insult.readInsults();
+				} catch (FileNotFoundException e) {}
 				
 				Random random = new Random();
-				int rndIndex = random.nextInt(offends.length);
+				int rndIndex = random.nextInt(insults.size());
 				
-				String text = fullName + ", " + offends[rndIndex];
+				String text = fullName + ", " + insults.get(rndIndex).text();
 				SendMessage send = new SendMessage(chatId, text);
 				bot.execute(send);
 			}
@@ -635,7 +634,7 @@ public class Bot extends TelegramBot {
 				help, creator, info, version, report, github, youtube, russian_warship, start,
 				cancel, anonymous,
 				set_birthday, my_birthdays,
-				set_joke, joke, privacy,
+				set_joke, set_insult, joke, privacy,
 				handshake, tickle, hug, punch, bite, insult
 		};
 		return commands;

@@ -51,9 +51,10 @@ public class Main {
 		    		switch(type) {
 		    		case Private:
 		    			if (!isBanned) {
+			    			if (text != null) handler.Private(message); //handle private commands
 			    			handler.setBirthdaySession(message);
 			    			handler.setJokeSession(message);
-			    			if (text != null) handler.Private(message); //handle private commands
+			    			handler.setInsultSession(message);
 		    			}
 		    			break;
 		    		case group:

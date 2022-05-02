@@ -359,6 +359,95 @@ public class MessageHandler {
 			break;
 		}
 	}
+	public void setInsultSession(Message message) {
+		//array of text messages this session ignores
+		List<String> ignore = new ArrayList<String>();
+		ignore.add("/setinsult");
+		ignore.add("/anonymous");
+		ignore.add("/cancel");
+		
+		long fromId = message.from().id();
+		List<SetInsultSession> list = SessionStore.setInsult();
+		
+		for (SetInsultSession setInsult : list) {
+			
+			if (setInsult.authorId() != fromId) continue;
+				
+				
+			boolean insultExpected = setInsult.text() == null;
+			boolean confirmExpected = !insultExpected && setInsult.confirmed() == false;
+			
+			String text = message.text();
+			long chatId = message.chat().id();
+			
+			//break, if it contains something from ignore list
+			boolean fromIgnoreList = ignore.contains(text);
+			if (fromIgnoreList) break;
+			
+			String response = "";
+			if (insultExpected) {
+				
+				//check if the text is unique
+				boolean isUnique = true;
+				if (text != null) {
+					List<Insult> insults = null;
+					try {
+						insults = Insult.readInsults();
+					} catch (FileNotFoundException e) {}
+					
+					for (Insult insult : insults) {
+						boolean equals = insult.text().toLowerCase().contentEquals( text.toLowerCase() );
+						
+						if (equals) isUnique = false;
+					}
+				}
+				
+				
+				if (text == null) response = "Вибачте, я приймаю лише текстові образи";
+				else if (text.length() > 150) response = "Вибачте, ваша образа занадто довга";
+				else if (!isUnique) response = "Образа з таким текстом вже існує!"; 
+				else {
+					//lower case the first character
+					char firstChar = text.charAt(0);
+					firstChar = Character.toLowerCase(firstChar);
+					text = firstChar + text.substring(1);
+					
+					response =
+						  "Василь Коваленко, " + text + "\n"
+						+ "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\n"
+						+ "Підтвердити: /confirm\n"
+						+ "\n"
+						+ "Відмінити: /cancel";
+					
+					setInsult.setText(text);
+				}
+			}
+			else if (confirmExpected) {
+				
+				if (text == null) response = "Будь ласка, відправте /confirm або /cancel";
+				else if ( !text.contentEquals("/confirm") ) {
+					response = "Будь ласка, відправте /confirm або /cancel";
+				}
+				else {
+					setInsult.setConfirmed(true);
+					
+					boolean anonymous = false;
+					try {	anonymous = bot.userIsAnonymous(fromId);	}
+					catch (FileNotFoundException e) {}
+					
+					Insult insult = setInsult.toInsult(anonymous);
+					try {	Insult.addInsult(insult);	}
+					catch (IOException e) {}
+					
+					SessionStore.clear(fromId);
+					response = "Образу збережено! Дякую за ваш внесок!";
+				}
+			}
+			SendMessage sendMessage = new SendMessage(chatId, response);
+			bot.execute(sendMessage);
+			break;
+		}
+	}
 	private boolean birthdayExists(long fromId, long contactId) {
 		List<Birthday> birthdays = null;
 		try {	birthdays = Birthday.readBirthdays();	}
